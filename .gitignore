@@ -1,0 +1,14 @@
+# Tệp môi trường
+.env
+.env.local
+
+# Thư mục chứa các gói cài đặt
+/node_modules
+
+# Thư mục build
+/dist
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

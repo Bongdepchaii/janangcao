@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const port = 8080;
@@ -8,7 +9,7 @@ let con = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "jsnangcao",
+  database: process.env.DB,
   
   
 });
