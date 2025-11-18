@@ -1,43 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lab1</title>
     <style>
-        #bai1{
-            width: 100px;
-            height: 100px;
-            background-color: blue;
-            margin: 0 auto;
-        }        
-        
+      #bai1 {
+        width: 100px;
+        height: 100px;
+        background-color: blue;
+        margin: 0 auto;
+      }
+      .title {
+        color: rgb(231, 40, 72);
+        font-family: "Times New Roman", Times, serif;
+      }
+      .user_item {
+        color: blueviolet;
+        font-size: 1rem;
+        font-weight: 300;
+        text-align: center;
+        list-style: none;
+      }
     </style>
-</head>
-<body>
+    <!-- Import thu vien date ben ngoai co san -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  </head>
+  <body>
     <center>
-        <h1>Bai 1</h1>
-        <div id="bai1"></div>
-        <br>
-        <h1>bai 2</h1>
-        <input type="text" id="inputText" value="33691E">
-        <h3>text input</h3>
+      <h1>Bai 1</h1>
+      <div id="bai1"></div>
+      <br />
+      <h1>bai 2</h1>
+      <input type="text" id="inputText" value="#33691E" />
+      <h3 class="title">text input</h3>
+      <h1>bai 3,4</h1>
+      <form action="" name="" class="form">
+        <input type="number" placeholder="Id" name="addid" id="addid" />
+        <input type="text" placeholder="Name" name="addname" id="addname" />
+        <select name="addgender" id="addgender">
+          <option value="1">Male</option>
+          <option value="2">Femare</option>
+        </select>
+        <input type="submit" id="submit" />
+      </form>
+      <ul id="target_3">
+        <li class="user_item"></li>
+      </ul>
+      <h1>bai 5,6</h1>
+    <div>
+        <label for="date">Date: </label>
+        <input type="text" id="date" value="18">
+    </div>
+    <div>
+        <label for="month">Month: </label>
+        <input type="text" id="month" value="11">
+    </div>
+    <div>
+        <label for="year">Year: </label>
+        <input type="text" id="year" value="2025">
+    </div>
+    <button id="convertBtn">Convert</button>
+
+    <div id="results">
+        </div>
+
     </center>
     <script>
-        // Bai 1
-        var bai1 = document.getElementById("bai1");
-        bai1.onmouseenter = function() {
-            bai1.style.backgroundColor = "red";
-        }
-        bai1.onmouseleave = function() {
-            bai1.style.backgroundColor = "blue";
-        }   
-        // Bai 2
-        var h3_bai2 = document.querySelector("h3");
-        var inputText = document.getElementById("inputText");
-        inputText.onkeyup = function() {
+      // Bai 1
+      var bai1 = document.getElementById("bai1");
+      bai1.onmouseenter = function () {
+        bai1.style.backgroundColor = "red";
+      };
+      bai1.onmouseleave = function () {
+        bai1.style.backgroundColor = "blue";
+      };
+      // Bai 2
+      var h3_bai2 = document.querySelector("h3");
+      var inputText = document.getElementById("inputText");
+      inputText.onkeyup = function () {
+        h3_bai2.style.color = inputText.value;
+        h3_bai2.innerText = inputText.value;
+        h3_bai2.setAttribute("class", "title");
+      };
+      // Bai 3
+      var users = [
+        { id: 1, name: "Thanh", gender: "Male" },
+        { id: 2, name: "Trang", gender: "Femare" },
+        { id: 3, name: "Huyen", gender: "Femare" },
+        { id: 4, name: "Vy", gender: "Femare" },
+      ];
+      var target_3 = document.querySelector("#target_3");
+      var form = document.querySelector(".form");
+      var id = document.querySelector("#addid");
+      var Name = document.querySelector("#addname");
+      var gender = document.querySelector("#addgender");
 
+      function renderUsers() {
+        target_3.innerHTML = "";
+        for (var user of users) {
+          var newuser = document.createElement("li");
+          newuser.classList.add("user_item");
+          newuser.innerText = `ID: ${user.id} - Name: ${user.name} - Gender: ${user.gender}`;
+          target_3.appendChild(newuser);
         }
+      }
+
+      function adduser(event) {
+        event.preventDefault();
+        
+        var newid = id.value;
+        var newname = Name.value;
+        var newGender = gender.options[gender.selectedIndex].text;
+
+        var newuser = {
+          id: newid,
+          name: newname,
+          gender: newGender,
+        };
+
+        users.push(newuser);
+        renderUsers();
+        form.reset();
+      }
+      form.addEventListener("submit", adduser);
+      renderUsers();
+
+    //   Bai 5,6
+    document.addEventListener("DOMContentLoaded", function() {
+            
+            document.getElementById("convertBtn").addEventListener("click", function() {
+                
+                let day = document.getElementById("date").value;
+                let month = document.getElementById("month").value;
+                let year = document.getElementById("year").value;
+
+                let dateString = `${year}-${month}-${day}`;
+                let inputDate = moment(dateString, "YYYY-MM-DD");
+
+                let format1 = inputDate.format("YYYY-MM-DD");
+                let format2 = inputDate.format("DD/MM/YYYY");
+                let format3 = inputDate.format("DD.MM.YYYY");
+                let format4 = inputDate.format("DD, MMM YYYY");
+                let format5 = inputDate.format("DD, MMMM YYYY");
+                
+                let dayOfWeek = inputDate.format("dddd");
+
+                let resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = `
+                    <h3>${format1}</h3>
+                    <h3>${format2}</h3>
+                    <h3>${format3}</h3>
+                    <h3>${format4}</h3>
+                    <h3>${format5}</h3>
+                    <hr>
+                    <h3 class="weekday">${dayOfWeek}</h3>
+                `;
+            });
+        });
     </script>
-</body>
+  </body>
 </html>
