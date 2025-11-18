@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab1</title>
+    <style>
+        #bai1{
+            width: 100px;
+            height: 100px;
+            background-color: blue;
+            margin: 0 auto;
+        }        
+        
+    </style>
+</head>
+<body>
+    <center>
+        <h1>Bai 1</h1>
+        <div id="bai1"></div>
+        <br>
+        <h1>bai 2</h1>
+        <input type="text" id="inputText" value="33691E">
+        <h3>text input</h3>
+    </center>
+    <script>
+        // Bai 1
+        var bai1 = document.getElementById("bai1");
+        bai1.onmouseenter = function() {
+            bai1.style.backgroundColor = "red";
+        }
+        bai1.onmouseleave = function() {
+            bai1.style.backgroundColor = "blue";
+        }   
+        // Bai 2
+        var h3_bai2 = document.querySelector("h3");
+        var inputText = document.getElementById("inputText");
+        inputText.onkeyup = function() {
+
+        }
+    </script>
+</body>
+</html>
