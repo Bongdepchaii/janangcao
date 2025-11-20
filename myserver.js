@@ -10,11 +10,11 @@ let con = mysql.createConnection({
   user: "root",
   password: "",
   database: process.env.DB,
-  
-  
+
+
 });
 
-con.connect(function(err) {
+con.connect(function (err) {
   if (err) throw err;
   console.log("Connected!");
 });
@@ -25,27 +25,28 @@ app.get('/', (req, res) => {
   res.send('Hello World from Express!');
 });
 app.get('/home/:pagenumber/:limitpage', (req, res) => {
-  con.query("SELECT * FROM product limit 10 offset " + (req.params.limitpage *( req.params.pagenumber - 1)) , function (err, result, fields) {
-    if (err) throw err;    
-	res.json(result);
+  con.query("SELECT * FROM product limit 10 offset " + (req.params.limitpage * (req.params.pagenumber - 1)), function (err, result, fields) {
+    if (err) throw err;
+    res.json(result);
   });
 });
 //node-cache
 app.get('/detailproduct/:productid', (req, res) => {
-	//lay dl tu cache
-	const cacheproduct = myCache.get(req.params.productid);
-	if(cacheproduct){
-		console.log("dl tu cache");
-		return res.json(cacheproduct);
-		
-	}
-	
-  con.query("SELECT * FROM product where id = "+ req.params.productid , function (err, result, fields) {
-    if (err) throw err;  
-	//set cache;
-	console.log("dl tu database");
-	myCache.set(req.params.productid, result);
-	res.json(result);
+  //lay dl tu cache
+  const cacheproduct = myCache.get(req.params.productid);
+  if (cacheproduct) {
+    console.log("dl tu cache");
+    return res.json(cacheproduct);
+  }
+
+
+
+  con.query("SELECT * FROM product where id = " + req.params.productid, function (err, result, fields) {
+    if (err) throw err;
+    //set cache;
+    console.log("dl tu database");
+    myCache.set(req.params.productid, result);
+    res.json(result);
   });
 });
 
