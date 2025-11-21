@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lab 4: Lập Trình JavaScript Nâng Cao</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        padding: 30px;
+      }
+      .bmi-container {
+        max-width: 400px;
+        margin-bottom: 30px;
+      }
+      .color-box {
+        width: 150px;
+        height: 150px;
+        border: 2px solid #ccc;
+        background-color: white;
+        transition: background-color 0.5s;
+      }
+      .student-list-container {
+        max-width: 500px;
+      }
+      hr {
+        width: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Bai 1 -->
+      <h2 class="mt-4">Bai 1</h2>
+      <div class="bmi-container p-3 border rounded">
+        <div class="mb-3">
+          <label for="weight" class="form-label">can nang (kg)</label>
+          <input
+            type="number"
+            id="weight"
+            class="form-control"
+            placeholder="nnhap can nang (kg)"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="height" class="form-label">chieu cao (cm)</label>
+          <input
+            type="number"
+            id="height"
+            class="form-control"
+            placeholder="nhap chieu cao (cm)"
+          />
+        </div>
+        <button class="btn btn-primary" onclick="checkbmi()">Enter</button>
+        <p class="mt-3">chi so bmi cua ban: <strong id="bmiResult"></strong></p>
+      </div>
+
+      <hr />
+      <!-- Bai 2 -->
+      <h2 class="mt-4">bai 2</h2>
+      <div class="d-flex align-items-center">
+        <div id="colorBox" class="color-box me-4"></div>
+        <button class="btn btn-info" onclick="changeColorAsync()">
+          Change color
+        </button>
+      </div>
+
+      <hr />
+      <!-- Bai 3 -->
+      <h2 class="mt-4">bai 3</h2>
+      <div class="student-list-container p-3 border rounded">
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            id="studentName"
+            class="form-control"
+            placeholder="nhap ten sinh vien"
+          />
+          <button class="btn btn-success" type="button" onclick="addStudent()">
+            add
+          </button>
+        </div>
+        <button class="btn btn-secondary mb-3" onclick="sortStudents()">
+          sap xep theo ten
+        </button>
+
+        <h4>list sinh vien</h4>
+        <ul id="studentList" class="list-group"></ul>
+      </div>
+      <hr />
+      <!-- Bai 4 -->
+      <h2 class="mt-4">Bai 4</h2>
+      <p>Mang dau vao: <code>[1, 5, 8, 10, 3, 12, 7]</code></p>
+      <button class="btn btn-warning" onclick="runBai4()">
+        Tinh tong so chan
+      </button>
+      <p class="mt-3">Ket qua: <strong id="sumResult">Chua tinh</strong></p>
+    </div>
+
+    <script>
+      //   Bai 1
+
+      function checkbmi() {
+        const weight = document.getElementById("weight").value;
+        const heightCm = document.getElementById("height").value;
+        const bmiResultElement = document.getElementById("bmiResult");
+
+        if (isNaN(weight) || isNaN(heightCm) || weight <= 0 || heightCm <= 0) {
+          alert("Vui long nhap chieu cao va can nang hop le");
+          return;
+        }
+
+        const heightM = heightCm / 100; 
+        const bmi = weight / (heightM * heightM);
+        bmiResultElement.textContent = bmi.toFixed(2);
+      }
+
+      // Bai 2
+      function randomColor() {
+        return "#" + Math.floor(Math.random() * 16777215).toString(16);
+      }
+
+      function changeColorAsync() {
+        const colorBox = document.getElementById("colorBox");
+
+        setTimeout(() => {
+          const newColor = randomColor();
+          colorBox.style.backgroundColor = newColor;
+          console.log("mau moi duoc doi:", newColor);
+        }, 1000);
+
+        console.log("Da kich hoat doi. se thay doi trong 1s");
+      }
+
+      // bai 3
+
+      let studentArray = [];
+
+      function addStudent() {
+        const inputElement = document.getElementById("studentName");
+        let name = inputElement.value.trim();
+
+        if (name) {
+          studentArray.push(name);
+
+          inputElement.value = "";
+
+          renderStudents(studentArray);
+        } else {
+          alert("Vui long dien ten sinh vien");
+        }
+      }
+
+      function sortStudents() {
+        studentArray.sort((a, b) => {
+          const nameA = a.toUpperCase();
+          const nameB = b.toUpperCase();
+
+          if (nameA < nameB) return -1;
+          if (nameA > nameB) return 1;
+          return 0;
+        });
+
+        renderStudents(studentArray);
+        console.log("Danh sacg da sap xep:", studentArray);
+      }
+
+      function renderStudents(students) {
+        const listElement = document.getElementById("studentList");
+        let html = "";
+
+        students.forEach((name) => {
+          html += `<li class="list-group-item">${name}</li>`;
+        });
+
+        listElement.innerHTML = html;
+      }
+
+      renderStudents(studentArray);
+
+      // Bai 4
+      function sumEvenNumbers(arr) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            if (arr.length === 0) {
+              reject("nang dau vao khong duoc rong!");
+              return;
+            }
+
+            let sum = 0;
+            arr.forEach((number) => {
+              if (number % 2 === 0) {
+                sum += number;
+              }
+            });
+
+            resolve(sum);
+          }, 2000);
+        });
+      }
+
+      function runBai4() {
+        const numbers = [1, 5, 8, 10, 3, 12, 7];
+        const resultElement = document.getElementById("sumResult");
+
+        resultElement.textContent = "vui long doi dang tinh";
+
+        sumEvenNumbers(numbers)
+          .then((result) => {
+            resultElement.textContent = `Tong so chan la: ${result}`;
+            console.log("so chan:", result);
+          })
+          .catch((error) => {
+            resultElement.textContent = `Loi: ${error}`;
+            console.error("error", error);
+          });
+      }
+    </script>
+  </body>
+</html>

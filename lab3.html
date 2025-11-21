@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <title>Document</title>
+    <style scoped>
+      form input {
+        margin: 5px;
+        outline: none;
+      }
+      form select {
+        margin: 5px;
+      }
+      body{
+        margin: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Bai 1 -->
+     <h2>Bai 1</h1>
+    <form action="" id="form_study">
+      <input type="hidden" name="id" id="id" />
+      <label for="">
+        Name:
+        <input type="text" name="name" id="name" /> </label
+      ><br />
+      <label for="">
+        Email:
+        <input type="email" name="email" id="email" /> </label
+      ><br />
+      <label for="">
+        Avarta:
+        <input type="file" name="avt" id="avt" /> </label
+      ><br />
+      <label for="">
+        Address:
+        <input type="text" name="address" id="address" /> </label
+      ><br />
+      <label for="">
+        Study Major:
+        <select name="study_major " id="study_major">
+          <option value="IT">IT</option>
+          <option value="Design">Design</option>
+        </select>
+        <input onclick="addsinhvien()"
+          type="button"
+          name="submit"
+          value="Add"
+          class="btn btn-success"
+        />
+      </label>
+    </form>
+    <hr>
+    <!-- Bai 2 -->
+
+    <h2>bai 2</h2>
+
+    <form action="">
+        <label>Subject Name</label>
+      <input type="text" id="subName" /><br>
+
+      <label>Point</label>
+      <input type="number" id="subPoint" />
+
+      <input type="button" value="Add" class="btn btn-outline-info" onclick="addsinhvien2()" />
+    </form>
+
+    <p id="student_name"></p>
+    <p id="student_age"></p>
+    <p id="student_address"></p>
+
+    <ul id="subjects"></ul>
+    <hr>
+
+    <!-- Bai 3 -->
+
+    <h2>Bai 3</h2>
+    <div id="bai3_info"></div>
+
+
+
+    <!-- Bai 4 -->
+
+    <h2>Bai 4</h2>
+
+       <form>
+        profile 1
+        <br>
+      <input id="p1_name" placeholder="Name"><br>
+      <input id="p1_age" placeholder="Age"><br>
+      <input id="p1_address" placeholder="Address"><br><br>
+
+      profile 2
+      <br>
+      <input id="p2_name" placeholder="Name"><br>
+      <input id="p2_age" placeholder="Age"><br>
+      <input id="p2_address" placeholder="Address"><br><br>
+
+    <button type="button" onclick="show()" class="btn btn-primary">Show profile</button>
+    </form>
+
+    <p id="result"></p>
+
+
+    <script>
+        // Bai 1
+        let sinhvien = {
+            id: "",
+            name: "",
+            email: "",
+            avarta:"",
+            address: "",
+            study_major: "",
+            avgscore: "",
+
+        getAvgScore(){
+            return this.avgscore
+        },
+        
+        setAvgScore(point){
+            return this.avgscore = point
+        },
+
+        changeAddress(address) {
+            return this.avgscore = address
+        }
+    }
+
+   function addsinhvien() {
+        // e.preventDefault();
+
+        sinhvien.id = document.getElementById('id').value;
+        sinhvien.name = document.getElementById('name').value;
+        sinhvien.email = document.getElementById('email').value;
+        sinhvien.avt = document.getElementById('avt').value;
+        sinhvien.address = document.getElementById('address').value;
+        sinhvien.study_major = document.getElementById("study_major").value;
+
+        const diemtrungbinh = sinhvien.setAvgScore(9);
+        sinhvien.changeAddress("hcm city")
+
+        console.log("sinh vien: ", sinhvien);
+        console.log("diem trung binh:", diemtrungbinh);
+
+        alert("add sinh vien thanh cong! kiem tra console")
+    }
+
+    // Bai 2
+    
+    let sinhvien_2 = {
+        name: "Bui Trong Thanh",
+        age: 20,
+        address: "Dak lak",
+        subject: [
+            {
+                name: "Javascript nang cao",
+                point: "8",
+            },
+        ],
+        };
+
+        function rendersinhvien () {
+            document.getElementById("student_name").innerHTML = sinhvien_2.name;
+            document.getElementById("student_age").innerHTML = sinhvien_2.age;
+            document.getElementById("student_address").innerHTML = sinhvien_2.address;
+
+            let html = ""
+            sinhvien_2.subject.forEach((sub) => {
+                html += `<li>${sub.name} - ${sub.point}</li>`;
+            });
+
+            document.getElementById("subjects").innerHTML = html;
+        }
+
+        function addsinhvien2 () { 
+            let name = document.getElementById("subName").value;
+            let point = document.getElementById("subPoint").value;
+
+            if ( name == "" || point == ""){
+                alert("Vui long dien thong tin vao form bai 3");
+                return;
+            }
+
+            sinhvien_2.subject.push({
+                name: name,
+                point: point,
+            })
+
+            document.getElementById("subName").value == "";
+            document.getElementById("subPoint").value == "";
+
+            rendersinhvien();
+        }
+        // rendersinhvien();
+
+        // Bai 3
+
+        let sinhvien_3 = new StudentPoly(
+  "Nguyen Van A",
+  20,
+  "Ha Noi",
+  "0123456789",
+  "2004-10-10",
+  [
+    { name: "Javascript", teacher: "Mr Van", point: 8, year: 2024 },
+    { name: "HTML", teacher: "Ms Sonlh", point: 9, year: 2024 },
+  ],
+  "WD20301"
+);
+
+function Student(name, age, address, phone, birthday, subjects) {
+  this.name = name;
+  this.age = age;
+  this.address = address;
+  this.phone = phone;
+  this.birthday = birthday;
+  this.subjects = subjects;
+
+  this.getInfo = function () {
+    return `
+      Name: ${this.name}<br>
+      Age: ${this.age}<br>
+      Address: ${this.address}<br>
+      Phone: ${this.phone}<br>
+      Birthday: ${this.birthday}<br>
+    `;
+  };
+}
+
+
+function StudentPoly(name, age, address, phone, birthday, subjects, polyClass) {
+  Student.call(this, name, age, address, phone, birthday, subjects);
+
+  this.polyClass = polyClass;
+
+  this.showAll = function () {
+    let subList = this.subjects
+      .map((s) => `<li>${s.name} - ${s.teacher} - ${s.point} diem (${s.year})</li>`)
+      .join("");
+
+    return (
+      this.getInfo() + `Class: ${this.polyClass}<br>Subjects:<ul>${subList}</ul>`
+    );
+  };
+}
+document.getElementById("bai3_info").innerHTML = sinhvien_3.showAll();
+
+// Bai 4
+
+function Person(name, age, address) {
+  this.name = name;
+  this.age = age;
+  this.address = address;
+}
+
+Person.prototype.showProfile = function () {
+  return `Name: ${this.name}<br>Age: ${this.age}<br>Address: ${this.address}<br><br>`;
+};
+
+function show() {
+  let n1 = document.getElementById("p1_name").value;
+  let a1 = document.getElementById("p1_age").value;
+  let ad1 = document.getElementById("p1_address").value;
+
+  let n2 = document.getElementById("p2_name").value;
+  let a2 = document.getElementById("p2_age").value;
+  let ad2 = document.getElementById("p2_address").value;
+
+  if (!n1 || !a1 || !ad1 || !n2 || !a2 || !ad2) {
+    alert("Nhap day du thong tin!");
+    return;
+  }
+
+  let FirstPerson = new Person(n1, a1, ad1);
+  let SecondPerson = new Person(n2, a2, ad2);
+
+
+  document.getElementById("result").innerHTML = FirstPerson.showProfile() + SecondPerson.showProfile();
+}
+
+
+    </script>
+  </body>
+</html>
