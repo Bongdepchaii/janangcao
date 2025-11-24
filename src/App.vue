@@ -136,6 +136,10 @@ div.filter-page-container button {
     padding: 5px 10px;
     border: 0.5px solid #007bff;
 }
+div.filter-page-container button.active {
+    background-color: #007bff;
+    color: white;
+}
 div.container {
     margin-top: 20px;
     max-width: 1100px;
