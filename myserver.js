@@ -5,12 +5,16 @@ const port = 8080;
 let mysql = require('mysql');
 const nodecache = require('node-cache');
 const myCache = new nodecache();
+
+// add cors middleware, npm install cors
+const cors = require('cors');
+app.use(cors());
+
 let con = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
   database: process.env.DB,
-
 
 });
 
@@ -24,12 +28,34 @@ con.connect(function (err) {
 app.get('/', (req, res) => {
   res.send('Hello World from Express!');
 });
+
+// mysql
+// app.get('/home/:pagenumber/:limitpage', (req, res) => {
+//   con.query("SELECT * FROM product limit 10 offset " + (req.params.limitpage * (req.params.pagenumber - 1)), function (err, result, fields) {
+//     if (err) throw err;
+//     res.json(result);
+//   });
+// });
+
+// Fix mysql route to match the rewritten path
 app.get('/home/:pagenumber/:limitpage', (req, res) => {
-  con.query("SELECT * FROM product limit 10 offset " + (req.params.limitpage * (req.params.pagenumber - 1)), function (err, result, fields) {
+  con.query("SELECT * FROM product limit " + req.params.limitpage + " offset " + (req.params.limitpage * (req.params.pagenumber - 1)), function (err, result, fields) {
     if (err) throw err;
     res.json(result);
   });
 });
+
+app.get('/productcount', (req, res) => { // ĐÃ BỎ KHOẢNG TRẮNG
+  con.query("SELECT COUNT(*) as total FROM product", function (err, result, fields) {
+    if (err) {
+      console.error("Error fetching count:", err);
+      return res.status(500).send('Database query failed.');
+    }
+    // LƯU Ý: ĐẢM BẢO TRẢ VỀ JSON, VÍ DỤ: { "total": 50 }
+    res.json(result[0]);
+  });
+});
+
 //node-cache
 app.get('/detailproduct/:productid', (req, res) => {
   //lay dl tu cache
@@ -38,7 +64,6 @@ app.get('/detailproduct/:productid', (req, res) => {
     console.log("dl tu cache");
     return res.json(cacheproduct);
   }
-
 
 
   con.query("SELECT * FROM product where id = " + req.params.productid, function (err, result, fields) {
@@ -51,8 +76,9 @@ app.get('/detailproduct/:productid', (req, res) => {
 });
 
 app.use((req, res) => {
-  res.status(404).send('404 - Trang bạn yêu cầu không tồn tại!');
+  res.status(404).send('404 - not found!');
 });
+
 // Start the server
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
