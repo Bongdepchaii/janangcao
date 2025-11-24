@@ -1,11 +1,15 @@
 {
   "dependencies": {
+    "api": "^6.1.3",
+    "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mysql": "^2.18.1",
-    "node-cache": "^5.1.2"
+    "node-cache": "^5.1.2",
+    "router": "^2.2.0",
+    "vue-router": "^4.6.3"
   },
   "scripts": {
     "dev": "vite",
