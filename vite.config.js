@@ -17,7 +17,16 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, "/home"),
+        rewrite: (path) => path.replace(/^\/api/, '/home'),
+      },
+      "/productdetail": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        // rewrite: (path) => path.replace(/^\/productdetail/, '/productdetail'),
+      },
+      '/images': { 
+        target: 'http://localhost:8080', 
+        changeOrigin: true,
       },
       "/productcount": {
         target: "http://localhost:8080",

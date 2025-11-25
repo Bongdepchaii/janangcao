@@ -88,14 +88,15 @@ export default {
             <div class="container">
                          <h1>Sản phẩm hiển thị ở đây!!</h1>
                 <div class="row card-2">
-                    <div class="col-md-4" v-for="product in data" :key="product.id">
+                    <router-link  v-for="product in data" :key="product.id" :to="`productdetail/${product.id}`" class="col-md-4" style="color: black; text-decoration: none;">
                         <h3>{{ product.name }}</h3>
                         <div class="img-width">
-                            <img :src="product.img" :alt="product.name" />
+                            <!-- <img :src="product.img" :alt="product.name" />  -->
+                            <img :src="`/images/${product.img}`" :alt="product.name" />
                         </div>
                         <p>Price: {{ product.price }}</p>
                         <p>Quantity: {{ product.quantity }}</p>
-                    </div>
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -109,19 +110,18 @@ export default {
 </template>
 
 <style scoped>
-div.card-2 div.col-md-4 {
+div.card-2 .col-md-4 {
     border: 1px solid #ccc;
     padding: 10px;
     margin-bottom: 20px;
     margin-left: px;
     text-align: center;
 }
-
-div.card-2 div.col-md-4 :hover {
+div.card-2 .col-md-4 :hover {
     transition: 0.3s;
 }
 
-div.col-md-4 img {
+.col-md-4 img {
     max-width: 100%;
     height: auto;
 }

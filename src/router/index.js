@@ -8,7 +8,7 @@ const routes = [
     meta: { layout: "default" },
   },
   {
-    path: "/productdetail",
+    path: "/productdetail/:id",
     name: "ProductDetail",
     component: () => import("../pages/productdetail.vue"),
     meta: { layout: "default" },
