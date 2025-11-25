@@ -38,6 +38,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
       },
+      "/deleteproduct": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
     },
   },
 });

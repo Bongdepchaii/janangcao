@@ -19,6 +19,12 @@ const routes = [
     component: () => import("../pages/addproduct.vue"),
     meta: { layout: "default" },
   },
+  {
+    path : "/deleteproduct/:id",
+    name : "Deleteproduct",
+    component : () => import("../pages/deleteproduct.vue"),
+    meta: { layout: "default" },
+  }
 ];
 
 const router = createRouter({

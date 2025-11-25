@@ -1,6 +1,4 @@
 <script setup>
-import { createRouter, createWebHistory } from "vue-router";
-import router from '../router';
 </script>
 <template>
     <div class="header container mb-4">
@@ -14,7 +12,7 @@ import router from '../router';
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <router-link to="/addproduct" class="nav-link">Product</router-link>
+                        <router-link to="/addproduct" class="nav-link">Add Product Here</router-link>
                     </li>
                 </ul>
             </div>

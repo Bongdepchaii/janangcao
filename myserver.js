@@ -148,6 +148,22 @@ app.post("/addproduct", (req, res) => {
   });
 });
 
+// api delete product
+app.delete("/deleteproduct/:id", (req, res) => {
+  const productId = req.params.id;
+  const sql = "DELETE FROM product WHERE id = ?";
+
+  con.query(sql, [productId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res
+        .status(500)
+        .json({ message: "Lỗi xóa sản phẩm khỏi database." });
+    }
+    res.json({ message: "Xóa thành công!" });
+  });
+});
+
 // app use image
 app.use("/images", express.static(storageDir));
 
