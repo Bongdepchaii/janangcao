@@ -16,7 +16,7 @@ const cors = require("cors");
 app.use(cors());
 
 // upload img
-const storageDir = path.join(__dirname, "storage", "images");
+const storageDir = path.join(__dirname, "public", "images");
 
 // storage
 const storage = multer.diskStorage({

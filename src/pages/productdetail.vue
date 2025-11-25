@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router'; // Import để lấy thông tin route
+import { useRoute, useRouter } from 'vue-router'; // Import để lấy thông tin route
 
 const route = useRoute(); // Lấy đối tượng route
+const router = useRouter();
 const data = ref(null); // Khai báo biến data sử dụng ref, giá trị ban đầu là null
 const loading = ref(true);
 const error = ref(null);
@@ -39,6 +40,10 @@ const fetchProductDetail = async () => {
     }
 };
 
+const back = () => {
+    router.back()
+}
+
 onMounted(() => {
     fetchProductDetail();
 });
@@ -62,7 +67,7 @@ onMounted(() => {
                     <p><strong>ID:</strong> {{ data.id }}</p>
                     <p><strong>Price:</strong> {{ data.price }}</p>
                     <p><strong>Quantity:</strong> {{ data.quantity }}</p>
-                    <router-link to="/" class="btn btn-dark">Back</router-link>
+                    <button @click="back" class="btn btn-dark">Back</button>
                 </div>
             </div>
         </div>

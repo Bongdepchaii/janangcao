@@ -92,7 +92,7 @@ export default {
                         <h3>{{ product.name }}</h3>
                         <div class="img-width">
                             <!-- <img :src="product.img" :alt="product.name" />  -->
-                            <img :src="`/images/${product.img}`" :alt="product.name" />
+                            <img :src="`public/images/${product.img}`" :alt="product.name" />
                         </div>
                         <p>Price: {{ product.price }}</p>
                         <p>Quantity: {{ product.quantity }}</p>
