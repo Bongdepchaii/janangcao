@@ -60,7 +60,7 @@ onMounted(() => {
 
             <div class="row">
                 <div class="col-md-6">
-                    <img :src="data.img" :alt="data.name" class="detail-img" />
+                    <img :src="`http://localhost:8080/images/${data.img}`" :alt="data.name" class="detail-img" />
                 </div>
                 <div class="col-md-6 product-info">
                     <h2>{{ data.name }}</h2>

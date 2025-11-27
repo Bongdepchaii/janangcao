@@ -19,6 +19,12 @@ const routes = [
     component: () => import("../pages/addproduct.vue"),
     meta: { layout: "default" },
   }
+    // {
+  //   path: "/editproduct/:id",
+  //   name: "editproduct",
+  //   component: () => import("../pages/editproduct.vue"),
+  //   meta: { layout: "default" },
+  // }
   // {
   //   path : "/deleteproduct/:id",
   //   name : "Deleteproduct",

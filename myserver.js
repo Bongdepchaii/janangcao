@@ -165,6 +165,60 @@ app.delete("/deleteproduct/:id", (req, res) => {
   });
 });
 
+// api update product
+app.put("/updateproduct/:id", (req, res) => {
+    const productId = req.params.id;
+
+    upload(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            console.error("Multer error:", err);
+            return res.status(500).json({ message: "Lỗi upload file." });
+        } else if (err) {
+            console.error("Unknown upload error:", err);
+            return res.status(500).json({ message: "Lỗi server không xác định." });
+        }
+
+        const { Name, Quantity, Price } = req.body;
+        // Lấy tên file mới nếu có. Nếu không, req.file sẽ là undefined.
+        const newImg = req.file ? req.file.filename : null; 
+
+        if (!Name || !Quantity || !Price) {
+             // Nếu thiếu dữ liệu cơ bản, cần dọn dẹp file vừa upload
+             if (req.file) {
+                const fs = require("fs");
+                fs.unlinkSync(req.file.path);
+             }
+             return res
+                 .status(400)
+                 .json({ message: "Thiếu dữ liệu: Name, Quantity, hoặc Price." });
+        }
+
+        let sql;
+        let params;
+
+        if (newImg) {
+            sql = "UPDATE product SET name = ?, quantity = ?, price = ?, img = ? WHERE id = ?";
+            params = [Name, Quantity, Price, newImg, productId];
+        } else {
+            sql = "UPDATE product SET name = ?, quantity = ?, price = ? WHERE id = ?";
+            params = [Name, Quantity, Price, productId];
+        }
+
+        con.query(sql, params, (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res
+                    .status(500)
+                    .json({ message: "Lỗi cập nhật sản phẩm vào database." });
+            }
+            if (result.affectedRows === 0) {
+                 return res.status(404).json({ message: "Không tìm thấy sản phẩm cần cập nhật." });
+            }
+            res.json({ message: "Cập nhật thành công!" });
+        });
+    });
+});
+
 // app use image
 app.use("/images", express.static(storageDir));
 
