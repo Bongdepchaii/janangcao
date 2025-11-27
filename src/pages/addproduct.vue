@@ -21,11 +21,13 @@ export default {
             Name: "",
             Quantity: null,
             Price: null,
-            ImgFile: null
+            ImgFile: null,
+            previewUrl: null
         };
     },
-    methods: {
 
+    methods: {
+        // page
         async fetchData(page, limit) {
             const url = `/api/${page}/${limit}`;
             try {
@@ -90,8 +92,50 @@ export default {
             this.fetchData(this.currenpage, this.limit);
         },
         handleFileUpload(event) {
-            // ImgFile.value = event.target.files[0];
-            this.ImgFile = event.target.files[0];
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 1. Kiểm tra định dạng
+    const allowedTypes = ["image/jpeg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+        alert("Chỉ chấp nhận JPG hoặc PNG!");
+        event.target.value = "";
+        this.ImgFile = null;
+        return;
+    }
+
+    // 2. Kiểm tra dung lượng (10MB = 10 * 1024 * 1024)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+        alert("File quá lớn! Tối đa 10MB.");
+        event.target.value = "";
+        this.ImgFile = null;
+        return;
+    }
+
+    // 3. Kiểm tra kích thước ảnh (width <= 100px)
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = () => {
+        if (img.width <= 100) {
+            alert("Chiều rộng ảnh phải nhỏ hơn hoặc bằng 100px!");
+            event.target.value = "";
+            this.ImgFile = null;
+            return;
+        }
+
+        // Nếu tất cả hợp lệ → lưu file
+        this.ImgFile = file;
+        console.log("File hợp lệ!", file);
+    };
+
+    img.onerror = () => {
+        alert("File không phải hình ảnh hợp lệ!");
+        event.target.value = "";
+        this.ImgFile = null;
+    };
+
         },
 
         async addproduct() {
@@ -107,10 +151,7 @@ export default {
 
             const response = await fetch("/addproduct", {
                 method: "POST",
-                // QUAN TRỌNG: BỎ header "Content-type": "application/json"
-                // Trình duyệt sẽ tự động thiết lập Content-Type: multipart/form-data
-                // headers: { "Content-type": "application/json" }, // BỎ DÒNG NÀY
-                body: formData // Gửi FormData thay vì JSON
+                body: formData 
             });
 
             if (!response.ok) {
@@ -124,8 +165,8 @@ export default {
 
             // Reset form
             this.Name = "";
-            this.Quantity = null;
-            this.Price = null;
+            this.Quantity = "";
+            this.Price = "";
             this.ImgFile = null;
 
             await this.fetchData(this.currenpage, this.limit);
@@ -143,7 +184,7 @@ export default {
 </script>
 <template>
     <div class="container">
-        <form action="" @submit.prevent="addproduct" class="addproduct">
+        <form action="" @submit.prevent="addproduct" enctype="multipart/form-data" class="addproduct">
             <h1>Thêm Sản phẩm!!</h1>
             <!-- <input class="form-control" type="hidden" v-model="Id" id="Id" placeholder="Nhập ID"> -->
             <input class="form-control" type="text" v-model="Name" id="Name" placeholder="Nhập tên sản phẩm">
@@ -151,6 +192,11 @@ export default {
             <input class="form-control" type="number" v-model="Price" id="Price" placeholder="Nhập giá bán">
             <span> Thêm hình ảnh</span>
             <input class="form-control" type="file" @change="handleFileUpload">
+            <div v-if="previewUrl">
+                Image Preview: 
+                <br>
+                <img :src="previewUrl" style="max-width:100px; margin-top:10px; margin-bottom: 10px;">
+            </div>
             <button class="btn btn-success">Thêm</button>
         </form>
         <h1>Các sản phẩm hiện tại đang ở đây!</h1>
@@ -174,7 +220,7 @@ export default {
                     <td>{{ product.price }}</td>
                     <td><img :src="product.img" alt="" style="max-width: 70px;"></td>
                     <td>
-                        <button class="btn btn-primary" style="margin-right: 10px;">Edit</button>
+                        <button class="btn btn-primary" @click="openEditModal(product)" style="margin-right: 10px;">Edit</button>
                         <button class="btn btn-outline-danger" @click="deleteProduct(product.id)">Delete</button>
                     </td>
                 </tr>

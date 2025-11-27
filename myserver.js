@@ -111,17 +111,18 @@ app.get("/productdetail/:id", (req, res) => {
 
 // API thêm sản phẩm
 app.post("/addproduct", (req, res) => {
-  // BƯỚC 1: Xử lý Upload file trước
   upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      console.error("Multer Error:", err);
-      return res.status(500).json({ message: "Lỗi upload file." });
-    } else if (err) {
-      console.error("Unknown Error:", err);
-      return res.status(500).json({ message: "Lỗi Server không xác định." });
+    // ... (Xử lý lỗi Multer)
+
+    // Bắt buộc phải có file sau khi Multer xử lý
+    if (!req.file) {
+      // Nếu không có file, trả về lỗi 400 và KHÔNG cố gắng lưu DB
+      return res.status(400).json({ message: "Vui lòng thêm hình ảnh (Ảnh là bắt buộc)." });
     }
+    
+    // Nếu có req.file, tiếp tục với DB
     const { Name, Quantity, Price } = req.body;
-    const Img = req.file ? req.file.filename : null;
+    const Img = req.file.filename;
 
     if (!Name || !Quantity || !Price) {
       if (req.file) {
