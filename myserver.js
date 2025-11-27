@@ -64,9 +64,9 @@ app.get("/", (req, res) => {
 app.get("/home/:pagenumber/:limitpage", (req, res) => {
   con.query(
     "SELECT * FROM product limit " +
-      req.params.limitpage +
-      " offset " +
-      req.params.limitpage * (req.params.pagenumber - 1),
+    req.params.limitpage +
+    " offset " +
+    req.params.limitpage * (req.params.pagenumber - 1),
     function (err, result, fields) {
       if (err) throw err;
       res.json(result);
@@ -75,7 +75,7 @@ app.get("/home/:pagenumber/:limitpage", (req, res) => {
 });
 
 app.get("/productcount", (req, res) => {
-  // ĐÃ BỎ KHOẢNG TRẮNG
+  // remove khoan trang sql
   con.query(
     "SELECT COUNT(*) as total FROM product",
     function (err, result, fields) {
@@ -83,7 +83,7 @@ app.get("/productcount", (req, res) => {
         console.error("Error fetching count:", err);
         return res.status(500).send("Database query failed.");
       }
-      // LƯU Ý: ĐẢM BẢO TRẢ VỀ JSON, VÍ DỤ: { "total": 50 }
+      //  luu y tra ve json result[0] de lay duoc total trong object
       res.json(result[0]);
     }
   );
@@ -91,16 +91,16 @@ app.get("/productcount", (req, res) => {
 
 //node-cache
 app.get("/productdetail/:id", (req, res) => {
-  // THÊM DÒNG NÀY: Khai báo biến productId để sử dụng
+//  khai bao bien productId
   const productId = req.params.id;
-  const cacheproduct = myCache.get(productId); // ... (xử lý cache) // SỬA: Sử dụng Prepared Statement và chỉ truyền productId
+  // const cacheproduct = myCache.get(productId);
   const sql = "SELECT * FROM product WHERE id = ?";
 
   con.query(sql, [productId], function (err, result, fields) {
     // Truyền [productId]
     if (err) {
-      console.error("Lỗi truy vấn chi tiết sản phẩm:", err); // Ghi log lỗi database chi tiết
-      // Trả về lỗi 500 nếu có lỗi DB
+      console.error("Lỗi truy vấn chi tiết sản phẩm:", err); // Ghi log loi 
+      // tra ve loi 500 neu co loi database
       return res.status(500).json({ message: "Lỗi truy vấn cơ sở dữ liệu." });
     }
     console.log("dl tu database");
@@ -109,18 +109,18 @@ app.get("/productdetail/:id", (req, res) => {
   });
 });
 
-// API thêm sản phẩm
+// api add product
 app.post("/addproduct", (req, res) => {
   upload(req, res, function (err) {
-    // ... (Xử lý lỗi Multer)
+  //  xu ly loi multer
 
-    // Bắt buộc phải có file sau khi Multer xử lý
+    // bat buoc phai co file hinh anh
     if (!req.file) {
-      // Nếu không có file, trả về lỗi 400 và KHÔNG cố gắng lưu DB
-      return res.status(400).json({ message: "Vui lòng thêm hình ảnh (Ảnh là bắt buộc)." });
+      // neu khong co file thi tra ve loi
+      return res.status(400).json({ message: "Please add Images." });
     }
-    
-    // Nếu có req.file, tiếp tục với DB
+
+    // neu co req.file thi moi lay duoc filename
     const { Name, Quantity, Price } = req.body;
     const Img = req.file.filename;
 
@@ -131,7 +131,7 @@ app.post("/addproduct", (req, res) => {
       }
       return res
         .status(400)
-        .json({ message: "Thiếu dữ liệu: Name, Quantity, hoặc Price." });
+        .json({ message: "Litte data: Name, Quantity, or Price." });
     }
 
     const sql =
@@ -142,9 +142,9 @@ app.post("/addproduct", (req, res) => {
         console.error("Database error:", err);
         return res
           .status(500)
-          .json({ message: "Lỗi thêm sản phẩm vào database." });
+          .json({ message: "Error add product to database." });
       }
-      res.json({ message: "Thêm thành công!" });
+      res.json({ message: "Add successfly!" });
     });
   });
 });
@@ -159,64 +159,68 @@ app.delete("/deleteproduct/:id", (req, res) => {
       console.error("Database error:", err);
       return res
         .status(500)
-        .json({ message: "Lỗi xóa sản phẩm khỏi database." });
+        .json({ message: "Erorr delete product database." });
     }
-    res.json({ message: "Xóa thành công!" });
+    myCache.del(productId);
+    console.log(`Cache product id ${productId} Delete successfly.`);
+    res.json({ message: "Delete successfly" });
   });
 });
 
 // api update product
 app.put("/updateproduct/:id", (req, res) => {
-    const productId = req.params.id;
+  const productId = req.params.id;
 
-    upload(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            console.error("Multer error:", err);
-            return res.status(500).json({ message: "Lỗi upload file." });
-        } else if (err) {
-            console.error("Unknown upload error:", err);
-            return res.status(500).json({ message: "Lỗi server không xác định." });
-        }
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      console.error("Multer error:", err);
+      return res.status(500).json({ message: "Error upload file." });
+    } else if (err) {
+      console.error("Unknown upload error:", err);
+      return res.status(500).json({ message: "error server not xac dinh" });
+    }
 
-        const { Name, Quantity, Price } = req.body;
-        // Lấy tên file mới nếu có. Nếu không, req.file sẽ là undefined.
-        const newImg = req.file ? req.file.filename : null; 
+    const { Name, Quantity, Price } = req.body;
+    // lay ten img moi neu co
+    const newImg = req.file ? req.file.filename : null;
 
-        if (!Name || !Quantity || !Price) {
-             // Nếu thiếu dữ liệu cơ bản, cần dọn dẹp file vừa upload
-             if (req.file) {
-                const fs = require("fs");
-                fs.unlinkSync(req.file.path);
-             }
-             return res
-                 .status(400)
-                 .json({ message: "Thiếu dữ liệu: Name, Quantity, hoặc Price." });
-        }
+    if (!Name || !Quantity || !Price) {
+      // thieu du lieu
+      if (req.file) {
+        const fs = require("fs");
+        fs.unlinkSync(req.file.path);
+      }
+      return res
+        .status(400)
+        .json({ message: "Thieu data: Name, Quantity, hoặc Price." });
+    }
 
-        let sql;
-        let params;
+    let sql;
+    let params;
 
-        if (newImg) {
-            sql = "UPDATE product SET name = ?, quantity = ?, price = ?, img = ? WHERE id = ?";
-            params = [Name, Quantity, Price, newImg, productId];
-        } else {
-            sql = "UPDATE product SET name = ?, quantity = ?, price = ? WHERE id = ?";
-            params = [Name, Quantity, Price, productId];
-        }
+    if (newImg) {
+      sql = "UPDATE product SET name = ?, quantity = ?, price = ?, img = ? WHERE id = ?";
+      params = [Name, Quantity, Price, newImg, productId];
+    } else {
+      sql = "UPDATE product SET name = ?, quantity = ?, price = ? WHERE id = ?";
+      params = [Name, Quantity, Price, productId];
+    }
 
-        con.query(sql, params, (err, result) => {
-            if (err) {
-                console.error("Database error:", err);
-                return res
-                    .status(500)
-                    .json({ message: "Lỗi cập nhật sản phẩm vào database." });
-            }
-            if (result.affectedRows === 0) {
-                 return res.status(404).json({ message: "Không tìm thấy sản phẩm cần cập nhật." });
-            }
-            res.json({ message: "Cập nhật thành công!" });
-        });
+    con.query(sql, params, (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res
+          .status(500)
+          .json({ message: "error update database." });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "not search product update" });
+      }
+      myCache.del(productId);
+      console.log(`Cache product id ${productId} delete successfly.`);
+      res.json({ message: "Update succesfly" });
     });
+  });
 });
 
 // app use image

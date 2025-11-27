@@ -18,18 +18,20 @@ export default {
             limit: 10,
             totalPages: 0,
 
+            // add
             Name: "",
             Quantity: null,
             Price: null,
             ImgFile: null,
             previewUrl: null,
 
-            editingProduct: null, // ID sản phẩm đang chỉnh sửa
+            // edit
+            editingProduct: null, 
             editName: "",
             editQuantity: null,
             editPrice: null,
-            editImgFile: null, // File ảnh mới
-            editPreviewUrl: null // URL ảnh xem trước
+            editImgFile: null, 
+            editPreviewUrl: null 
         };
     },
 
@@ -67,12 +69,12 @@ export default {
             }
         },
         async deleteProduct(productId) {
-            if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm ID: ${productId} không?`)) {
-                return; // Người dùng hủy bỏ
+            if (!confirm(`are you sure delete product ID: ${productId}?`)) {
+                return; 
             }
 
             try {
-                // Đảm bảo URL /deleteproduct được định nghĩa trong vite.config.js
+                // url dinh nghia dung voi vite.config.js
                 const url = `/deleteproduct/${productId}`;
 
                 const response = await fetch(url, {
@@ -80,17 +82,17 @@ export default {
                 });
 
                 if (response.ok) {
-                    alert(`Đã xóa sản phẩm ID: ${productId} thành công.`);
+                    alert(`delete product ID: ${productId} successfly.`);
 
                     await this.fetchData(this.currenpage, this.limit);
 
                 } else {
                     const errorData = await response.json();
-                    alert(`Lỗi xóa sản phẩm: ${response.status} - ${errorData.message || 'Lỗi không xác định.'}`);
+                    alert(`Error delete product: ${response.status} - ${errorData.message || 'Error not xac dinh.'}`);
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
-                alert('Có lỗi xảy ra trong quá trình xóa sản phẩm.');
+                alert('Co error xay ra khi xoa product.');
             }
         },
         gotoPage(page) {
@@ -99,10 +101,7 @@ export default {
             this.fetchData(this.currenpage, this.limit);
         },
 
-        /**
-         * 🌟 Mở Modal/Form chỉnh sửa và điền dữ liệu
-         * @param {Object} product - Sản phẩm được chọn để chỉnh sửa.
-         */
+
 
         openEditModal(product) {
             this.editingProduct = product.id;
@@ -110,27 +109,21 @@ export default {
             this.editQuantity = product.quantity;
             this.editPrice = product.price;
 
-            // Đặt URL ảnh hiện tại
+            // url hien tai
             this.editPreviewUrl = `public/images/${product.img}`;
-            this.editImgFile = null; // Luôn reset file ảnh mới
+            this.editImgFile = null; // luon reset file anh new
         },
-
-        /**
-         * 🌟 Xử lý tải lên file ảnh (đã được sửa đổi để dùng chung cho cả Thêm và Chỉnh sửa)
-         * @param {Event} event - Sự kiện thay đổi input file.
-         * @param {boolean} isEdit - Xác định là chức năng thêm mới (false) hay chỉnh sửa (true).
-         */
 
         handleFileUpload(event, isEdit = false) {
             const file = event.target.files[0];
 
-            // Xác định biến state sẽ được cập nhật
+            // xac dinh bien state neu duoc cap nhat
             const fileRef = isEdit ? 'editImgFile' : 'ImgFile';
             const previewRef = isEdit ? 'editPreviewUrl' : 'previewUrl';
 
             if (!file) {
                 this[fileRef] = null;
-                // Giữ lại ảnh cũ trong chế độ Edit nếu không có file mới
+                // giu lai file anh cu neu nguoi dung khong edit
                 if (!isEdit && this[previewRef]) {
                     URL.revokeObjectURL(this[previewRef]);
                 }
@@ -141,50 +134,47 @@ export default {
             // 1. Kiểm tra định dạng
             const allowedTypes = ["image/jpeg", "image/png"];
             if (!allowedTypes.includes(file.type)) {
-                alert("Chỉ chấp nhận JPG hoặc PNG!");
+                alert("chi nhan anh jpg va png");
                 event.target.value = "";
                 this[fileRef] = null;
                 return;
             }
 
-            // 2. Kiểm tra dung lượng (10MB)
+            // check dung luong (10mb)
             const maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
-                alert("File quá lớn! Tối đa 10MB.");
+                alert("File qua lon toi da 10mb.");
                 event.target.value = "";
                 this[fileRef] = null;
                 return;
             }
 
-            // 3. Kiểm tra kích thước ảnh
+            // kiem tra kich thuoc anh
             const img = new Image();
             img.src = URL.createObjectURL(file);
 
             img.onload = () => {
-                // ⚠️ Logic kiểm tra: Ảnh hợp lệ khi chiều rộng > 100px.
-                // Nếu yêu cầu của bạn là chiều rộng PHẢI <= 100px, bạn giữ lại logic cũ.
-                // Tôi sửa thành > 100px (thông thường)
                 if (img.width <= 100) {
-                    alert("Chiều rộng ảnh phải lớn hơn 100px!");
+                    alert("width phai 100px!");
                     event.target.value = "";
                     this[fileRef] = null;
                     this[previewRef] = null;
                     return;
                 }
 
-                // Nếu tất cả hợp lệ → lưu file và tạo preview URL
+                // neu tat ca hop le → luu file va tao url review
                 this[fileRef] = file;
 
-                // Hủy URL cũ nếu có (để tránh rò rỉ bộ nhớ)
+                // canel url cu neu co
                 if (this[previewRef] && this[previewRef].startsWith('blob:')) {
                     URL.revokeObjectURL(this[previewRef]);
                 }
                 this[previewRef] = URL.createObjectURL(file);
-                console.log("File hợp lệ!", file);
+                console.log("File hop le!", file);
             };
 
             img.onerror = () => {
-                alert("File không phải hình ảnh hợp lệ!");
+                alert("Khong phai hinh anh, khong hop le");
                 event.target.value = "";
                 this[fileRef] = null;
                 this[previewRef] = null;
@@ -208,7 +198,7 @@ export default {
             });
 
             if (!response.ok) {
-                const errorData = await response.json(); // Server trả về JSON lỗi
+                const errorData = await response.json(); // server tra ve json error
                 alert(`Lỗi: ${response.status} - ${errorData.message}`);
                 return;
             }
@@ -226,23 +216,23 @@ export default {
         },
         async updateProduct() {
             if (!this.editingProduct) {
-                alert("Không có sản phẩm nào được chọn để chỉnh sửa.");
+                alert("Khong co san pham nao duoc chinh sua.");
                 return;
             }
 
             const formData = new FormData();
 
-            // Điền dữ liệu mới từ form chỉnh sửa
+            // Dien du lieu moi vao form data
             formData.append('Name', this.editName);
             formData.append('Quantity', this.editQuantity);
             formData.append('Price', this.editPrice);
 
-            // Chỉ thêm file ảnh mới nếu người dùng đã chọn (editImgFile không null)
+            // chi them file anh neu co chon moi
             if (this.editImgFile) {
                 formData.append('image', this.editImgFile);
             }
 
-            // Giả định API endpoint là /updateproduct/:id
+            // gia dinh api update theo id san pham dang chinh sua 
             const url = `/updateproduct/${this.editingProduct}`;
 
             try {
@@ -252,39 +242,38 @@ export default {
                 });
 
                 if (!response.ok) {
-                    // 🌟 BỔ SUNG LOGIC XỬ LÝ LỖI PHẢN HỒI NON-JSON 🌟
                     const contentType = response.headers.get("content-type");
                     if (contentType && contentType.includes("application/json")) {
-                        // Server trả về JSON, ta đọc lỗi từ JSON
+                        // Server tra ve json error
                         const errorData = await response.json();
-                        throw new Error(`Lỗi: ${response.status} - ${errorData.message || 'Lỗi server.'}`);
+                        throw new Error(`Error: ${response.status} - ${errorData.message || 'Error server.'}`);
                     } else {
-                        // Server KHÔNG trả về JSON (có thể là HTML hoặc chuỗi text 404/500)
+                        // Server khong tra ve json
                         const errorText = await response.text();
                         console.error('Non-JSON Error Response:', errorText);
 
-                        // Xử lý lỗi 404 cụ thể hơn
+                        // xu ly loi 404 rieng
                         if (response.status === 404) {
-                            throw new Error(`Lỗi 404: Không tìm thấy API cập nhật (/updateproduct/${this.editingProduct}). Vui lòng kiểm tra Server.`);
+                            throw new Error(`Error 404: khong tim thay api update (/updateproduct/${this.editingProduct}). Check lai server.`);
                         }
 
-                        throw new Error(`Lỗi: ${response.status} - Phản hồi không phải JSON.`);
+                        throw new Error(`Error: ${response.status} - Phan hoi khong phai json.`);
                     }
                 }
 
                 const data = await response.json();
-                alert(data.message || "Cập nhật sản phẩm thành công!");
+                alert(data.message || "Update product successful.");
 
-                // Đóng Modal và reset state chỉnh sửa
+                // Close Modal và reset state editing
                 this.editingProduct = null;
                 this.editPreviewUrl = null;
 
-                // Lấy lại dữ liệu để cập nhật bảng
+                // lay lai du lieu update bang
                 await this.fetchData(this.currenpage, this.limit);
 
             } catch (error) {
                 console.error('Error updating product:', error);
-                alert(`Có lỗi xảy ra trong quá trình cập nhật sản phẩm: ${error.message}`);
+                alert(`error xay ra cap nhat: ${error.message}`);
             }
         }
     },
