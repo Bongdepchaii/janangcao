@@ -109,6 +109,8 @@ app.get("/productdetail/:id", (req, res) => {
   });
 });
 
+
+
 // api add product
 app.post("/addproduct", (req, res) => {
   upload(req, res, function (err) {
@@ -137,7 +139,7 @@ app.post("/addproduct", (req, res) => {
     const sql =
       "INSERT INTO product (name, quantity, price, img) VALUES (?, ?, ?, ?)";
 
-    con.query(sql, [Name, Quantity, Price, Img], (err, result) => {
+    con.query(sql, [Name, Quantity, Price, Img], (err) => {
       if (err) {
         console.error("Database error:", err);
         return res
@@ -147,6 +149,23 @@ app.post("/addproduct", (req, res) => {
       res.json({ message: "Add successfly!" });
     });
   });
+});
+
+// addtocart api
+app.post("/addtocart/:id", (req, res) => {
+  const Id = req.body;
+  const created_at = new Date()
+
+  
+  const sql = "INSERT INTO cart (idproduct, created_at) VALUES (?, ?)";
+  con.query(sql, [Id, created_at], (err) => {
+    if(err){
+      console.error("Database error:", err);
+      return res
+      .status(500)
+      .json({message: "Error add to cart to database."})
+    }
+  })
 });
 
 // api delete product
@@ -222,6 +241,8 @@ app.put("/updateproduct/:id", (req, res) => {
     });
   });
 });
+
+
 
 // app use image
 app.use("/images", express.static(storageDir));

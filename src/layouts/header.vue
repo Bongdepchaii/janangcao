@@ -8,13 +8,19 @@
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
+            
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
                         <router-link to="/addproduct" class="nav-link">Add Product Here</router-link>
                     </li>
                 </ul>
+            </div>
+            <div class="cart">
+                <router-link to="/cart" class="nav-link">
+                    <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                    Cart
+                </router-link>
             </div>
         </nav>
     </div>

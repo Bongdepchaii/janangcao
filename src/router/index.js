@@ -18,7 +18,13 @@ const routes = [
     name: "Addproduct",
     component: () => import("../pages/addproduct.vue"),
     meta: { layout: "default" },
-  }
+  },
+  {
+    path: "/cart",
+    name: "Cart",
+    component: () => import("../pages/cart.vue"),
+    meta: { layout: "default" },
+  },
     // {
   //   path: "/editproduct/:id",
   //   name: "editproduct",

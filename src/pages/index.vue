@@ -41,6 +41,25 @@ export default {
                 this.totalPages = 0;
             }
         },
+        // add to cart 
+        async Addtocart() {
+            const url = `/addtocart/:id`;
+            try {
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!res.ok){
+                    throw new Error (`add to cart failed:  ${res.status}`);
+                };
+                alert("add product successfly")
+                console.log("add product successfly")
+            } catch (error) {
+                console.error("bug", error);
+            }
+        },
         gotoPage(page) {
             if (page < 1 || page > this.totalPages) return;
             this.currenpage = page;
@@ -86,17 +105,20 @@ export default {
         <!-- <pre v-else>{{ data }}</pre> -->
         <div v-else>
             <div class="container">
-                         <h1>Sản phẩm hiển thị ở đây!!</h1>
+                <h1>Sản phẩm hiển thị ở đây!!</h1>
                 <div class="row card-2">
-                    <router-link  v-for="product in data" :key="product.id" :to="`productdetail/${product.id}`" class="col-md-4" style="color: black; text-decoration: none;">
-                        <h3>{{ product.name }}</h3>
-                        <div class="img-width">
+                    <router-link v-for="product in data" :key="product.id" :to="`productdetail/${product.id}`"
+                        class="col-md-4 card " style="color: black; text-decoration: none;">
+                        <div class="img-width mt-2 mb-2">
                             <!-- <img :src="product.img" :alt="product.name" />  -->
                             <img :src="`public/images/${product.img}`" :alt="product.name" />
                         </div>
+                        <h3>{{ product.name }}</h3>
                         <p>Price: {{ product.price }}</p>
                         <p>Quantity: {{ product.quantity }}</p>
+                        <button class="btn btn-dark mb-2" @click="Addtocart">Add to cart</button>
                     </router-link>
+
                 </div>
             </div>
         </div>
@@ -110,6 +132,12 @@ export default {
 </template>
 
 <style scoped>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    /* background-color: #f8f9fa; */
+}
+
 div.card-2 .col-md-4 {
     border: 1px solid #ccc;
     padding: 10px;
@@ -117,6 +145,7 @@ div.card-2 .col-md-4 {
     margin-left: px;
     text-align: center;
 }
+
 div.card-2 .col-md-4 :hover {
     transition: 0.3s;
 }
@@ -208,17 +237,20 @@ a {
     font-style: normal;
     margin-bottom: 15px;
 }
+
 .nav-icons a {
     font-size: 1.5rem;
     margin-right: 15px;
     color: white;
 
 }
+
 div.c {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+
 h1 {
     font-size: 1.5rem;
     font-weight: 400;
