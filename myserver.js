@@ -1,21 +1,22 @@
 require("dotenv").config();
 const express = require("express");
 
-// thu vien import multer and path
-const multer = require("multer");
-const path = require("path");
-
 const app = express();
 const port = 8080;
 let mysql = require("mysql");
 const nodecache = require("node-cache");
 const myCache = new nodecache();
 
+// thu vien import multer and path
+const multer = require("multer");
+const path = require("path");
+
 // add cors middleware, npm install cors
 const cors = require("cors");
+const { error } = require("console");
 app.use(cors());
 
-// upload img
+// thu muc de luu tru data images
 const storageDir = path.join(__dirname, "public", "images");
 
 // storage
@@ -63,7 +64,7 @@ app.get("/", (req, res) => {
 // Fix mysql route to match the rewritten path
 app.get("/home/:pagenumber/:limitpage", (req, res) => {
   con.query(
-    "SELECT * FROM product limit " +
+    "SELECT * FROM product order by id desc limit " +
     req.params.limitpage +
     " offset " +
     req.params.limitpage * (req.params.pagenumber - 1),
@@ -91,7 +92,7 @@ app.get("/productcount", (req, res) => {
 
 //node-cache
 app.get("/productdetail/:id", (req, res) => {
-//  khai bao bien productId
+  //  khai bao bien productId
   const productId = req.params.id;
   // const cacheproduct = myCache.get(productId);
   const sql = "SELECT * FROM product WHERE id = ?";
@@ -114,7 +115,7 @@ app.get("/productdetail/:id", (req, res) => {
 // api add product
 app.post("/addproduct", (req, res) => {
   upload(req, res, function (err) {
-  //  xu ly loi multer
+    //  xu ly loi multer
 
     // bat buoc phai co file hinh anh
     if (!req.file) {
@@ -149,23 +150,6 @@ app.post("/addproduct", (req, res) => {
       res.json({ message: "Add successfly!" });
     });
   });
-});
-
-// addtocart api
-app.post("/addtocart/:id", (req, res) => {
-  const Id = req.body;
-  const created_at = new Date()
-
-  
-  const sql = "INSERT INTO cart (idproduct, created_at) VALUES (?, ?)";
-  con.query(sql, [Id, created_at], (err) => {
-    if(err){
-      console.error("Database error:", err);
-      return res
-      .status(500)
-      .json({message: "Error add to cart to database."})
-    }
-  })
 });
 
 // api delete product
@@ -242,6 +226,86 @@ app.put("/updateproduct/:id", (req, res) => {
   });
 });
 
+// addtocart api
+app.post("/addtocart/:id", (req, res) => {
+  const id = req.params.id;
+  const created_at = new Date();
+
+  // Check query cart 
+  const checkquery = "select * from cart where idproduct = ?";
+  con.query(checkquery, [id], (err, result) => {
+    if (err) {
+      console.error("Database error: ", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    // If add to cart exist
+    if (result.length > 0) {
+      const updateproduct = "Update cart set quantity = quantity + 1 Where idproduct = ?";
+      con.query(updateproduct, [id], (err2) => {
+        if (err2) {
+          console.log("Update error: ", err2);
+          return res.status(500).json({ message: "update quantity product error" });
+        }
+        return res.json({ message: "Update quantity + 1" });
+      });
+    }
+    // else if not item to cart
+    else {
+      const insertquery = "INSERT INTO cart (idproduct, quantity, created_at) VALUES (?, ?, ?)";
+      con.query(insertquery, [id, 1, created_at], (err) => {
+        if (err) {
+          console.error("Database error:", err);
+          return res.status(500).json({ message: "Error adding to cart" });
+        }
+        res.json({ message: "Add to cart success" });
+      });
+    }
+  });
+});
+
+// cart data
+app.get("/cart/:page/:limit", (req, res) => {
+  const { page, limit } = req.params;
+  const sql = `Select gh.id, gh.idproduct, gh.quantity as quantitycart, gh.created_at, sp.id as idproduct, sp.name as nameproduct, sp.quantity as quantityproduct, sp.price, sp.img from cart gh left join product sp on gh.idproduct = sp.id order by sp.id DESC LIMIT ? OFFSET ?`;
+  con.query(sql, [parseInt(limit), (page - 1) * limit], (err, result) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    res.json(result);
+  });
+});
+
+app.get("/cartcount", (req, res) => {
+  con.query(`Select count(*) as total from cart`, (err, result) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    res.json(result[0]);
+  });
+});
+
+// cart remove
+app.delete("/deletecart/:id", (req, res) => {
+  const cartid = req.params.id;
+  const sql = "DELETE FROM cart WHERE id = ?";
+
+  con.query(sql, [cartid], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res
+        .status(500)
+        .json({ message: "Erorr delete product database." });
+    }
+    myCache.del(cartid);
+    console.log(`Cache cart id ${cartid} Delete successfly.`);
+    res.json({ message: "Delete successfly" });
+  });
+});
+
+// Order hide data total
+app.get("/order", (req, res) =>{
+  const queryorder = "SELECT SUM(gh.quantity) AS total_quantity_cart, SUM(gh.quantity * sp.price) AS total_price_cart FROM cart gh LEFT JOIN product sp ON gh.idproduct = sp.id;"
+  con.query(queryorder, (err, result) => {
+    if (err) return res.status(500).json({ error: "DB error"});
+    res.json(result[0]);
+  })
+})
 
 
 // app use image

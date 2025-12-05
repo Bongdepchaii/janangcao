@@ -72,7 +72,6 @@ export default {
             if (!confirm(`are you sure delete product ID: ${productId}?`)) {
                 return; 
             }
-
             try {
                 // url dinh nghia dung voi vite.config.js
                 const url = `/deleteproduct/${productId}`;
@@ -131,7 +130,7 @@ export default {
                 return;
             };
 
-            // 1. Kiểm tra định dạng
+            // 1. check dinh dang jpg va png
             const allowedTypes = ["image/jpeg", "image/png"];
             if (!allowedTypes.includes(file.type)) {
                 alert("chi nhan anh jpg va png");
@@ -290,21 +289,21 @@ export default {
 <template>
     <div class="container">
         <form action="" @submit.prevent="addproduct" enctype="multipart/form-data" class="addproduct">
-            <h1>Thêm Sản phẩm!!</h1>
+            <h1>Add product!!</h1>
             <!-- <input class="form-control" type="hidden" v-model="Id" id="Id" placeholder="Nhập ID"> -->
-            <input class="form-control" type="text" v-model="Name" id="Name" placeholder="Nhập tên sản phẩm">
-            <input class="form-control" type="number" v-model="Quantity" id="Quantity" placeholder="Nhập số lượng">
-            <input class="form-control" type="number" v-model="Price" id="Price" placeholder="Nhập giá bán">
-            <span> Thêm hình ảnh</span>
+            <input class="form-control" type="text" v-model="Name" id="Name" placeholder="Name product">
+            <input class="form-control" type="number" v-model="Quantity" id="Quantity" placeholder="Quantity">
+            <input class="form-control" type="number" v-model="Price" id="Price" placeholder="Price">
+            <span>Add image</span>
             <input class="form-control" type="file" @change="handleFileUpload">
             <div v-if="previewUrl">
                 Image Preview:
                 <br>
                 <img :src="previewUrl" style="max-width:100px; margin-top:10px; margin-bottom: 10px;">
             </div>
-            <button class="btn btn-success">Thêm</button>
+            <button class="btn btn-success">Add product</button>
         </form>
-        <h1>Các sản phẩm hiện tại đang ở đây!</h1>
+        <h1>List product!!</h1>
         <br>
         <table class="table">
             <thead>
@@ -333,14 +332,14 @@ export default {
             </tbody>
         </table>
         <div class="filter-page-container" v-if="totalPages > 1">
-            <button @click="gotoPage(currenpage - 1)" :disabled="currenpage === 1">Trước</button>
+            <button @click="gotoPage(currenpage - 1)" :disabled="currenpage === 1">Back</button>
             <button v-for="page in totalPages" :key="page" @click="gotoPage(page)"
                 :class="{ active: currenpage === page }">{{ page }}</button>
-            <button @click="gotoPage(currenpage + 1)" :disabled="currenpage === totalPages">Sau</button>
+            <button @click="gotoPage(currenpage + 1)" :disabled="currenpage === totalPages">Next</button>
         </div>
         <div v-if="editingProduct" class="edit-modal-overlay">
             <form @submit.prevent="updateProduct" enctype="multipart/form-data" class="edit-product-form">
-                <h2>Chỉnh Sửa Sản phẩm ID: {{ editingProduct }}</h2>
+                <h2>Edit product ID: {{ editingProduct }}</h2>
                 <input class="form-control" type="text" v-model="editName" id="editName" placeholder="Nhập tên sản phẩm"
                     required>
                 <input class="form-control" type="number" v-model="editQuantity" id="editQuantity"
@@ -348,7 +347,7 @@ export default {
                 <input class="form-control" type="number" v-model="editPrice" id="editPrice" placeholder="Nhập giá bán"
                     required min="0">
 
-                <span> Đổi hình ảnh (Để trống nếu không đổi)</span>
+                <span> Image</span>
                 <input class="form-control" type="file" @change="event => handleFileUpload(event, true)">
 
                 <div v-if="editPreviewUrl">
@@ -357,9 +356,9 @@ export default {
                     <img :src="editPreviewUrl" style="max-width:100px; margin-top:10px; margin-bottom: 10px;">
                 </div>
 
-                <button class="btn btn-success" type="submit" style="margin-right: 10px;">Cập Nhật</button>
+                <button class="btn btn-success" type="submit" style="margin-right: 10px;">Update</button>
                 <button class="btn btn-secondary" type="button"
-                    @click="editingProduct = null; editPreviewUrl = null;">Hủy</button>
+                    @click="editingProduct = null; editPreviewUrl = null;">Canel</button>
             </form>
         </div>
     </div>
@@ -404,13 +403,13 @@ input {
 }
 
 form {
-    width: 50%;
+    width: 100%;
     margin: 50px auto;
 }
 
 .addproduct {
     box-shadow: 1px 1px 10px #ccc;
-    padding: 20px;
+    padding: 50px;
 }
 
 /* button */

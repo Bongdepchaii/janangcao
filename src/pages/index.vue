@@ -42,17 +42,17 @@ export default {
             }
         },
         // add to cart 
-        async Addtocart() {
-            const url = `/addtocart/:id`;
+        async Addtocart(id) {
+            const url = `/addtocart/${id}`;
             try {
                 const res = await fetch(url, {
                     method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    // headers: {
+                    //     'Content-Type': 'application/json'
+                    // }
                 });
-                if (!res.ok){
-                    throw new Error (`add to cart failed:  ${res.status}`);
+                if (!res.ok) {
+                    throw new Error(`add to cart failed:  ${res.status}`);
                 };
                 alert("add product successfly")
                 console.log("add product successfly")
@@ -105,29 +105,29 @@ export default {
         <!-- <pre v-else>{{ data }}</pre> -->
         <div v-else>
             <div class="container">
-                <h1>Sản phẩm hiển thị ở đây!!</h1>
+                <h1>Welcome!!</h1>
                 <div class="row card-2">
-                    <router-link v-for="product in data" :key="product.id" :to="`productdetail/${product.id}`"
-                        class="col-md-4 card " style="color: black; text-decoration: none;">
-                        <div class="img-width mt-2 mb-2">
-                            <!-- <img :src="product.img" :alt="product.name" />  -->
-                            <img :src="`public/images/${product.img}`" :alt="product.name" />
-                        </div>
-                        <h3>{{ product.name }}</h3>
-                        <p>Price: {{ product.price }}</p>
-                        <p>Quantity: {{ product.quantity }}</p>
-                        <button class="btn btn-dark mb-2" @click="Addtocart">Add to cart</button>
-                    </router-link>
-
+                    <div class="col-md-4 card" v-for="product in data" :key="product.id">
+                        <router-link :to="`productdetail/${product.id}`" style="color: black; text-decoration: none;">
+                            <div class="img-width mt-2 mb-2">
+                                <!-- <img :src="product.img" :alt="product.name" />  -->
+                                <img :src="`images/${product.img}`" :alt="product.name" />
+                            </div>
+                            <h3>{{ product.name }}</h3>
+                            <p>Price: {{ product.price }}</p>
+                            <p>Quantity: {{ product.quantity }}</p>
+                        </router-link>
+                        <button class="btn btn-dark mb-2" @click="Addtocart(product.id)">Add to cart</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="filter-page-container" v-if="totalPages > 1">
-        <button @click="gotoPage(currenpage - 1)" :disabled="currenpage === 1">Trước</button>
+        <button @click="gotoPage(currenpage - 1)" :disabled="currenpage === 1">Back</button>
         <button v-for="page in totalPages" :key="page" @click="gotoPage(page)"
             :class="{ active: currenpage === page }">{{ page }}</button>
-        <button @click="gotoPage(currenpage + 1)" :disabled="currenpage === totalPages">Sau</button>
+        <button @click="gotoPage(currenpage + 1)" :disabled="currenpage === totalPages">Next</button>
     </div>
 </template>
 

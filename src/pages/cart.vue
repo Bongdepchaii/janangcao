@@ -1,93 +1,163 @@
-<script setup>
+<script>
+
+export default {
+    data() {
+        return {
+            totalcart: {},
+            data: [],
+            currenpage: 1,
+            limit: 5,
+            totalPages: 0
+        };
+    },
 
 
-
+    methods: {
+        // hide data product to cart
+        async fetchdata(page, limit) {
+            const url = `cart/${page}/${limit}`;
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error("failed to fetch data error");
+                };
+                console.log("fetch: url ", url);
+                this.data = await res.json();
+                console.log("data error", this.data);
+            } catch (error) {
+                console.error("error fetching data: ", error);
+                this.data = [];
+            }
+        },
+        // page item cart
+        async fetchdatatoal(limit) {
+            const url = "/cartcount";
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error("Failed to fetch total count from server");
+                };
+                const result = await res.json();
+                const totalcount = result.total;
+                this.totalPages = Math.ceil(totalcount / limit);
+                console.log("total pages: ", this.totalPages);
+            } catch (error) {
+                console.error("error fetching total pages", error);
+                this.totalPages = 0;
+            }
+        },
+        // remove cart
+        async deleteCart(id) {
+            if (!confirm(`Are you sure remove Cart: ${cart.id}?`)) {
+                return;
+            };
+        },
+        // order
+        async fetchdatacart() {
+            const url = "/order";
+            try {
+                const res = await fetch(url);
+                if(!res.ok){
+                    throw new Error("failed to fetch data order error");
+                };
+                console.log("fetch: url ", url);
+                this.totalcart = await res.json();
+                console.log("data order error", this.totalcart);
+            } catch (error) { 
+                console.error("Error fetching order data: ", error);
+                this.totalcart = [];
+            }
+        },
+        // formart vnđ
+        formatCurrency(value) {
+            if (value == null) return '0 VNĐ';
+            return new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(value);
+        },
+        // page
+        gotoPage(page) {
+            if (page < 1 || page > this.totalPages) return;
+            this.currenpage = page;
+            this.fetchdata(this.currenpage, this.limit);
+        },
+    },
+    // reload
+    mounted() {
+        this.fetchdata(this.currenpage, this.limit);
+        this.fetchdatatoal(this.limit);
+        this.fetchdatacart();
+    }
+}
 </script>
 <template>
+
     <body>
         <div class="container">
             <h2>Cart</h2>
-            <div class="row">
-                <div class="col-md-8">
+            <div class="row" style="position: relative;">
+                <div class="col-md-8" v-for="cart in data" :key="cart.id">
                     <div class="row">
-                        <img src="../../public/images/1764034392814-text_ng_n_5__9_25.webp" alt="product-image">
+                        <img :src="`../../public/images/${cart.img}`" alt="product-image">
                         <div class="col-md-9">
                             <div class="productorremove">
-                                <h5>Tên Sản Phẩm</h5>
-                                <i class="bi bi-trash3 btn btn-outline-danger"></i>
+                                <h5 style="">{{ cart.nameproduct }}</h5>
+                                <i class="bi bi-trash3 btn btn-outline-danger" @click="deleteCart(cart.id)"></i>
                             </div>
-                            <p>Giá: 0 VND</p>
-                            <p>Số Lượng: 1</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <img src="../../public/images/1764034392814-text_ng_n_5__9_25.webp" alt="product-image">
-                        <div class="col-md-9">
-                            <div class="productorremove">
-                                <h5>Tên Sản Phẩm</h5>
-                                <i class="bi bi-trash3 btn btn-outline-danger"></i>
-                            </div>
-                            <p>Giá: 0 VND</p>
-                            <p>Số Lượng: 1</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <img src="../../public/images/1764034392814-text_ng_n_5__9_25.webp" alt="product-image">
-                        <div class="col-md-9">
-                            <div class="productorremove">
-                                <h5>Tên Sản Phẩm</h5>
-                                <i class="bi bi-trash3 btn btn-outline-danger"></i>
-                            </div>
-                            <p>Giá: 0 VND</p>
-                            <p>Số Lượng: 1</p>
+                            <p>Price: {{ cart.price }} VND</p>
+                            <p>Quantity: {{ cart.quantitycart }}</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 card p-3 card-body card-1">
-                    <h3>Tổng Cộng</h3>
-                    <p>Sản phẩm: 4</p>
-                    <p>Số lượng: 12</p>
-                    <p>Shipper: 15.500VNĐ</p>
+                <div class="col-md-3 card p-3 card-body card-1" style="position: absolute; right: 15px;">
+                    <h3>Order Detail</h3>
+                    <p>Product: {{ totalcart.total_quantity_cart }}</p>
+                    <p>Price: {{ formatCurrency(totalcart.total_price_cart) }}</p>
+                    <p>Shipper: 15.500 ₫</p>
                     <hr>
                     <div class="total">
-                        <p>Tổng tiền:</p>
-                        <p>0 VND</p>
+                        <p>Total:</p>
+                        <p style="font-weight: bold; color: blue;">{{ formatCurrency(totalcart.total_price_cart + + 15000) }}</p>
                     </div>
-                        <button class="btn btn-primary">Thanh Toán</button>
+                    <button class="btn btn-primary">Complete Payment</button>
                 </div>
             </div>
 
             <div class="row gx-5 mt-5">
-                <h2>Sản phẩm liên quan</h2>
+                <h2>Related products</h2>
                 <div class="col-md-2 mb-3 card-2 card p-3">
-                    <img src="../../public/images/1764035310550-iphone-8-plus-64gb-128gb-256gb-cu-like-new-99-qkm-4-1.jpg" alt="related-product-image">
-                    <h5>Tên Sản Phẩm</h5>
-                    <p>Giá: 0 VND</p>
-                    <button class="btn btn-light">Thêm vào giỏ</button>
+                    <img src="../../public/images/1764035310550-iphone-8-plus-64gb-128gb-256gb-cu-like-new-99-qkm-4-1.jpg"
+                        alt="related-product-image">
+                    <h5>Name product 1</h5>
+                    <p>Price: 0 VND</p>
+                    <button class="btn btn-light">Add to cart</button>
                 </div>
                 <div class="col-md-2 mb-3 card-2 card p-3">
-                    <img src="../../public/images/1764047793297-54923-iphone-5s-32gb-quoc-te-den.jpg" alt="related-product-image">
-                    <h5>Tên Sản Phẩm</h5>
-                    <p>Giá: 0 VND</p>
-                    <button class="btn btn-light">Thêm vào giỏ</button>
+                    <img src="../../public/images/1764047793297-54923-iphone-5s-32gb-quoc-te-den.jpg"
+                        alt="related-product-image">
+                    <h5>Name product 2</h5>
+                    <p>Price: 0 VND</p>
+                    <button class="btn btn-light">Add to cart</button>
                 </div>
                 <div class="col-md-2 mb-3 card-2 card p-3">
-                    <img src="../../public/images/1764053104965-(600x600)_samsung_galaxy_a16_5g_trang_thumb_1.jpg" alt="related-product-image">
-                    <h5>Tên Sản Phẩm</h5>
-                    <p>Giá: 0 VND</p>
-                    <button class="btn btn-light">Thêm vào giỏ</button>
-                </div>
-                <div class="col-md-2 mb-3 card-2 card p-3">
-                    <img src="../../public/images/1764221093268-download (1).jpg" alt="related-product-image">
-                    <h5>Tên Sản Phẩm</h5>
-                    <p>Giá: 0 VND</p>
-                    <button class="btn btn-light">Thêm vào giỏ</button>
+                    <img src="../../public/images/1764053104965-(600x600)_samsung_galaxy_a16_5g_trang_thumb_1.jpg"
+                        alt="related-product-image">
+                    <h5>Name product 3</h5>
+                    <p>Price: 0 VND</p>
+                    <button class="btn btn-light">Add to cart</button>
                 </div>
                 <div class="col-md-2 mb-3 card-2 card p-3">
                     <img src="../../public/images/1764221093268-download (1).jpg" alt="related-product-image">
-                    <h5>Tên Sản Phẩm</h5>
-                    <p>Giá: 0 VND</p>
-                    <button class="btn btn-light">Thêm vào giỏ</button>
+                    <h5>Name product 4</h5>
+                    <p>Price: 0 VND</p>
+                    <button class="btn btn-light">Add to cart</button>
+                </div>
+                <div class="col-md-2 mb-3 card-2 card p-3">
+                    <img src="../../public/images/1764221093268-download (1).jpg" alt="related-product-image">
+                    <h5>Name Product 5</h5>
+                    <p>Price: 0 VND</p>
+                    <button class="btn btn-light">Add to cart</button>
                 </div>
             </div>
         </div>
@@ -131,9 +201,10 @@ div.productorremove {
     padding: 15px;
     height: fit-content;
     margin-left: 15px;
+    width: 31%;
 }
 
-.card-1 h3{
+.card-1 h3 {
     font-weight: 600;
     margin-bottom: 20px;
 }
@@ -156,11 +227,13 @@ div.productorremove {
 h2 {
     margin-bottom: 20px;
 }
-div.card-1 p{
+
+div.card-1 p {
     font-size: 18px;
 
 }
-div.total{
+
+div.total {
     font-size: 20px;
     display: flex;
     justify-content: space-between;
