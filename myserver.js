@@ -1,6 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 
+// ngan refest trang
+// const history = require("connect-history-api-fallback");
+
+// app.use(history());
+// app.use(express.static(path.join(__dirname, 'dist')));
+
 const app = express();
 const port = 8080;
 let mysql = require("mysql");

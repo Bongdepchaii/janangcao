@@ -48,9 +48,25 @@ export default {
         },
         // remove cart
         async deleteCart(id) {
-            if (!confirm(`Are you sure remove Cart: ${cart.id}?`)) {
+            if (!confirm(`Are you sure remove product: ${id}?`)) {
                 return;
-            };
+            }
+            try {
+                const url = `/deletecart/${id}`;
+                const res = await fetch(url, {
+                    method: "DELETE",
+                });
+                if (res.ok){
+                    alert(`Delete product Id: ${id} successfly.`);
+                    await this.fetchdata(this.currenpage, this.limit);
+                } else{
+                    const err = await res.json();
+                    alert (`Error delete product: ${res.status} - ${err.message || 'Error not xac dinh'}`);
+                }
+            } catch (error){
+                console.error ('Error delete product: ', error);
+                alert('Co Error xay ra khi xoa product.');
+            }
         },
         // order
         async fetchdatacart() {
@@ -88,7 +104,7 @@ export default {
         this.fetchdata(this.currenpage, this.limit);
         this.fetchdatatoal(this.limit);
         this.fetchdatacart();
-    }
+    }    
 }
 </script>
 <template>
@@ -120,7 +136,7 @@ export default {
                         <p>Total:</p>
                         <p style="font-weight: bold; color: blue;">{{ formatCurrency(totalcart.total_price_cart + + 15000) }}</p>
                     </div>
-                    <button class="btn btn-primary">Complete Payment</button>
+                    <button class="btn btn-primary" @click="completePayment()">Complete Payment</button>
                 </div>
             </div>
 
