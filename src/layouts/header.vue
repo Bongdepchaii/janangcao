@@ -22,6 +22,11 @@
                     Cart
                 </router-link>
             </div>
+            <div class="user" style="margin-left: 15px;">
+                <router-link to="/userprofile" class="nav-link">
+                    Hi, admin
+                </router-link>
+            </div>
         </nav>
     </div>
 </template>

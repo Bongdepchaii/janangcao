@@ -56,15 +56,15 @@ export default {
                 const res = await fetch(url, {
                     method: "DELETE",
                 });
-                if (res.ok){
+                if (res.ok) {
                     alert(`Delete product Id: ${id} successfly.`);
                     await this.fetchdata(this.currenpage, this.limit);
-                } else{
+                } else {
                     const err = await res.json();
-                    alert (`Error delete product: ${res.status} - ${err.message || 'Error not xac dinh'}`);
+                    alert(`Error delete product: ${res.status} - ${err.message || 'Error not xac dinh'}`);
                 }
-            } catch (error){
-                console.error ('Error delete product: ', error);
+            } catch (error) {
+                console.error('Error delete product: ', error);
                 alert('Co Error xay ra khi xoa product.');
             }
         },
@@ -73,13 +73,13 @@ export default {
             const url = "/order";
             try {
                 const res = await fetch(url);
-                if(!res.ok){
+                if (!res.ok) {
                     throw new Error("failed to fetch data order error");
                 };
                 console.log("fetch: url ", url);
                 this.totalcart = await res.json();
                 console.log("data order error", this.totalcart);
-            } catch (error) { 
+            } catch (error) {
                 console.error("Error fetching order data: ", error);
                 this.totalcart = [];
             }
@@ -87,10 +87,59 @@ export default {
         // formart vnđ
         formatCurrency(value) {
             if (value == null) return '0 VNĐ';
-            return new Intl.NumberFormat('vi-VN', { 
-                style: 'currency', 
-                currency: 'VND' 
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
             }).format(value);
+        },
+        async completePayment() {
+            if (!this.data || this.data.length === 0) {
+                alert('Giỏ hàng trống! Vui lòng thêm sản phẩm để thanh toán.');
+                return;
+            }
+
+            const shippingCost = 15000; // Lấy từ phần hiển thị của bạn
+            const totalAmount = this.totalcart.total_price_cart + shippingCost;
+
+            // Bạn có thể thêm một modal để nhập thông tin thanh toán (COD, Credit Card,...) 
+            // Ở đây tôi dùng prompt đơn giản và mặc định là COD
+            const paymentMethod = prompt("Vui lòng nhập phương thức thanh toán (ví dụ: COD, VISA):", "COD");
+
+            if (!paymentMethod) {
+                alert('Vui lòng chọn phương thức thanh toán.');
+                return;
+            }
+
+            try {
+                const url = "/complete-order"; // API mới sẽ được tạo trong Node.js
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    // Gửi dữ liệu giỏ hàng, tổng tiền, phương thức thanh toán lên server
+                    body: JSON.stringify({
+                        cartItems: this.data,
+                        totalAmount: totalAmount,
+                        payment: paymentMethod,
+                        // Trong thực tế cần có: user_id, shipping_address
+                    }),
+                });
+
+                if (res.ok) {
+                    alert("Đơn hàng đã được đặt thành công! Giỏ hàng sẽ được làm trống.");
+                    // Cập nhật lại giỏ hàng và tổng tiền sau khi đặt hàng thành công
+                    await this.fetchdata(this.currenpage, this.limit);
+                    await this.fetchdatatoal(this.limit);
+                    await this.fetchdatacart();
+                } else {
+                    const err = await res.json();
+                    alert(`Lỗi khi đặt hàng: ${err.message || 'Lỗi không xác định.'}`);
+                }
+            } catch (error) {
+                console.error("Lỗi network/server khi đặt hàng: ", error);
+                alert("Đã xảy ra lỗi kết nối. Vui lòng thử lại.");
+            }
         },
         // page
         gotoPage(page) {
@@ -104,7 +153,7 @@ export default {
         this.fetchdata(this.currenpage, this.limit);
         this.fetchdatatoal(this.limit);
         this.fetchdatacart();
-    }    
+    }
 }
 </script>
 <template>
@@ -134,7 +183,8 @@ export default {
                     <hr>
                     <div class="total">
                         <p>Total:</p>
-                        <p style="font-weight: bold; color: blue;">{{ formatCurrency(totalcart.total_price_cart + + 15000) }}</p>
+                        <p style="font-weight: bold; color: blue;">{{ formatCurrency(totalcart.total_price_cart + +
+                            15000) }}</p>
                     </div>
                     <button class="btn btn-primary" @click="completePayment()">Complete Payment</button>
                 </div>

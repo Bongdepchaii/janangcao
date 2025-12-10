@@ -313,6 +313,111 @@ app.get("/order", (req, res) =>{
   })
 })
 
+// payment
+app.post("/complete-order", async (req, res) => {
+    const { cartItems, totalAmount, payment } = req.body;
+    
+    // Giả định phí vận chuyển cố định: 15000 ₫
+    const SHIPPING_FEE = 15000; 
+
+    if (!cartItems || cartItems.length === 0) {
+        return res.status(400).json({ message: "Giỏ hàng trống." });
+    }
+
+    // 1. Khởi tạo transaction (QUAN TRỌNG để đảm bảo tất cả đều thành công hoặc thất bại)
+    con.beginTransaction(async (err) => {
+        if (err) {
+            console.error("Error starting transaction:", err);
+            return res.status(500).json({ message: "Lỗi Server (Transaction)." });
+        }
+
+        try {
+            // Lấy ra các ID sản phẩm trong giỏ hàng để kiểm tra tính hợp lệ và giá
+            const productIds = cartItems.map(item => item.idproduct);
+            const placeholders = productIds.map(() => "?").join(",");
+            
+            // 2. Lấy giá sản phẩm hiện tại từ bảng product (để đảm bảo giá không bị giả mạo từ client)
+            const productSql = `SELECT id, price FROM product WHERE id IN (${placeholders})`;
+            const [productsPrice] = await con.promise().query(productSql, productIds);
+            
+            const productMap = {};
+            productsPrice.forEach(p => {
+                productMap[p.id] = p.price;
+            });
+            
+            let calculatedTotal = 0;
+            const orderDetails = [];
+
+            for (const item of cartItems) {
+                const serverPrice = productMap[item.idproduct];
+                if (serverPrice === undefined) {
+                    throw new Error(`Sản phẩm ID ${item.idproduct} không tồn tại.`);
+                }
+                
+                // Tính toán tổng tiền sản phẩm
+                calculatedTotal += serverPrice * item.quantitycart;
+
+                // Chuẩn bị dữ liệu chi tiết đơn hàng
+                orderDetails.push({
+                    idproduct: item.idproduct,
+                    quantity: item.quantitycart,
+                    price: serverPrice // Giá tại thời điểm đặt hàng
+                });
+            }
+
+            const finalTotal = calculatedTotal + SHIPPING_FEE;
+            
+            // 3. Tạo bản ghi Đơn hàng chính (Bảng ordercart)
+            const orderSql = `INSERT INTO ordercart (idproduct, idcart, total, price, create_at, create_cannel, payment) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+            // Do cấu trúc bảng ordercart của bạn hơi kỳ lạ (có idproduct, idcart, price), tôi sẽ điền tạm giá trị hợp lý nhất
+            // Giả định: total là tổng tiền, price là tổng tiền sản phẩm.
+            
+            const now = new Date();
+            const [orderResult] = await con.promise().query(orderSql, [
+                orderDetails[0].idproduct, // Lấy ID product đầu tiên (Cần FIX cấu trúc DB)
+                cartItems[0].id, // Lấy ID cart đầu tiên (Cần FIX cấu trúc DB)
+                finalTotal, // Total: Tổng tiền cuối cùng
+                calculatedTotal, // Price: Tổng tiền sản phẩm
+                now,
+                now, // create_cannel -> tôi để tạm là now vì không có status/cancel_at
+                payment || 'COD' // Phương thức thanh toán
+            ]);
+
+            const orderId = orderResult.insertId; // Lấy ID của đơn hàng vừa tạo
+
+            // 4. Tạo bản ghi Chi tiết Đơn hàng (Giả định bạn có bảng order_detail nếu không thì bỏ qua bước này)
+            // LƯU Ý: Vì bạn chưa có bảng order_detail, tôi sẽ bỏ qua bước này để không làm lỗi code của bạn.
+            // Nếu bạn muốn lưu chi tiết, bạn cần tạo bảng và thêm đoạn code lặp qua orderDetails ở đây.
+
+            // 5. Xóa Giỏ hàng (Cart)
+            const deleteCartSql = `DELETE FROM cart`;
+            await con.promise().query(deleteCartSql);
+
+            // 6. Hoàn tất Transaction
+            con.commit((commitErr) => {
+                if (commitErr) {
+                    con.rollback(() => {
+                        console.error("Error committing transaction:", commitErr);
+                        return res.status(500).json({ message: "Lỗi Server (Commit)." });
+                    });
+                }
+                res.json({ 
+                    message: "Order placed successfully!", 
+                    orderId: orderId,
+                    total: finalTotal
+                });
+            });
+
+        } catch (error) {
+            // Rollback nếu có bất kỳ lỗi nào xảy ra
+            con.rollback(() => {
+                console.error("Transaction rolled back due to error:", error.message);
+                res.status(500).json({ message: `Đặt hàng thất bại: ${error.message}` });
+            });
+        }
+    });
+});
+
 
 // app use image
 app.use("/images", express.static(storageDir));

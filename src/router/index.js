@@ -8,6 +8,12 @@ const routes = [
     meta: { layout: "default" },
   },
   {
+    path: "/userprofile",
+    name: "UserProfile",
+    component: () => import("../pages/profile.vue"),
+    meta: { layout: "default" },
+  },
+  {
     path: "/productdetail/:id",
     name: "ProductDetail",
     component: () => import("../pages/productdetail.vue"),
@@ -25,7 +31,7 @@ const routes = [
     component: () => import("../pages/cart.vue"),
     meta: { layout: "default" },
   },
-    // {
+  // {
   //   path: "/editproduct/:id",
   //   name: "editproduct",
   //   component: () => import("../pages/editproduct.vue"),

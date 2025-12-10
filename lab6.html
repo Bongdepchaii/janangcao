@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab 6 - JavaScript Nâng Cao</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+  <h1 class="text-center text-primary mb-4">LAB 6 - JSON, PROMISE & FETCH</h1>
+
+  <!-- BÀI 1 -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">
+      Bài 1: Tạo mảng JSON Products
+    </div>
+    <div class="card-body">
+      <button class="btn btn-success mb-3" onclick="runBai1()">Hiển thị JSON</button>
+      <pre id="output1" class="bg-dark text-white p-3 rounded"></pre>
+    </div>
+  </div>
+
+  <!-- BÀI 2 -->
+  <div class="card mb-4">
+    <div class="card-header bg-warning">
+      Bài 2: Hiển thị tên sản phẩm bằng Promise
+    </div>
+    <div class="card-body">
+      <button class="btn btn-warning mb-3" onclick="runBai2()">Hiển thị sản phẩm</button>
+      <ul id="targetProducts" class="list-group"></ul>
+    </div>
+  </div>
+
+  <!-- BÀI 3 -->
+  <div class="card mb-4">
+    <div class="card-header bg-info text-white">
+      Bài 3: Fetch API (Giả lập) - Hiển thị Console
+    </div>
+    <div class="card-body">
+      <button class="btn btn-info mb-3" onclick="runBai3()">Fetch dữ liệu</button>
+      <p>Mở Console (F12) để xem kết quả</p>
+    </div>
+  </div>
+
+  <!-- BÀI 4 -->
+  <div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+      Bài 4: Fetch & Hiển thị danh sách Users
+    </div>
+    <div class="card-body">
+      <button class="btn btn-danger mb-3" onclick="runBai4()">Hiển thị Users</button>
+      <ul id="targetUsers" class="list-group"></ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================
+   BÀI 1: TẠO JSON PRODUCTS
+========================= */
+var products = [
+  { id: 1, name: "Áo thun", price: 150000, quantity: 10 },
+  { id: 2, name: "Quần jean", price: 300000, quantity: 5 },
+  { id: 3, name: "Giày thể thao", price: 500000, quantity: 7 },
+  { id: 4, name: "Mũ lưỡi trai", price: 80000, quantity: 20 },
+  { id: 5, name: "Balo", price: 250000, quantity: 8 }
+];
+
+function runBai1() {
+  document.getElementById("output1").textContent =
+    JSON.stringify(products, null, 2);
+}
+
+/* =========================
+   BÀI 2: JSON + PROMISE
+========================= */
+function runBai2() {
+  var ul = document.getElementById("targetProducts");
+  ul.innerHTML = "";
+
+  new Promise(function(resolve) {
+    var strContent = "";
+    products.forEach(function(item) {
+      strContent += `<li class="list-group-item">${item.name}</li>`;
+    });
+    resolve(strContent);
+  }).then(function(data) {
+    ul.innerHTML = data;
+  });
+}
+
+/* =========================
+   BÀI 3: FETCH API (GIẢ LẬP)
+========================= */
+function runBai3() {
+  const fakeApiData = {
+    page: 1,
+    per_page: 10,
+    data: [
+        { id: 1, first_name: "Bùi chí", last_name: "Bình" },
+      { id: 2, first_name: "Nguyễn Đại", last_name: "Dương" },
+      { id: 3, first_name: "Bùi Trọng", last_name: "Thành" }
+    ]
+  };
+
+  new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(fakeApiData);
+    }, 500);
+  }).then((data) => {
+    console.log("Dữ liệu từ API giả (Bài 3):", data);
+  });
+}
+
+/* =========================
+   BÀI 4: FETCH + HIỂN THỊ UI
+========================= */
+function runBai4() {
+  const ul = document.getElementById("targetUsers");
+  ul.innerHTML = "";
+
+  const fakeApiData = {
+    data: [
+      { id: 1, first_name: "Bùi chí", last_name: "Bình" },
+      { id: 2, first_name: "Nguyễn Đại", last_name: "Dương" },
+      { id: 3, first_name: "Bùi Trọng", last_name: "Thành" }
+    ]
+  };
+
+  new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(fakeApiData.data);
+    }, 500);
+  }).then((users) => {
+    users.forEach((user) => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.innerHTML = `${user.id} - ${user.first_name} ${user.last_name}`;
+      ul.appendChild(li);
+    });
+  });
+}
+</script>
+
+</body>
+</html>

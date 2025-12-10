@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab 5 - JavaScript Nâng Cao</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+  <h1 class="text-center text-primary mb-4">Lab 5</h1>
+
+  <!-- BÀI 1 -->
+  <div class="card mb-4">
+    <div class="card-header">Bài 1: Xử lý Callback Hell (Async/Await)</div>
+    <div class="card-body">
+      <button class="btn btn-outline-success mb-3" onclick="runBai1()">Run1</button>
+      <div id="output1" class="alert alert-secondary"></div>
+    </div>
+  </div>
+
+  <!-- BÀI 2 -->
+  <div class="card mb-4">
+    <div class="card-header">Bài 2: Xử lý bằng Promise</div>
+    <div class="card-body">
+      <button class="btn btn-outline-warning mb-3" onclick="runBai2()">Run2</button>
+      <div id="output2" class="alert alert-secondary"></div>
+    </div>
+  </div>
+
+  <!-- BÀI 3 -->
+  <div class="card">
+    <div class="card-header">Bài 3: Nhập điểm sinh viên bằng Promise</div>
+    <div class="card-body">
+      <button class="btn btn-outline-info mb-3" onclick="runBai3()">Enter point</button>
+      <div id="output3" class="alert alert-secondary"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   BÀI 1: ASYNC / AWAIT
+========================= */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function runBai1() {
+  const output = document.getElementById("output1");
+  output.innerHTML = "";
+
+  output.innerHTML += "b1. Đã ngủ dậy!<br>";
+  output.innerHTML += "b2. Đang đánh răng...<br>";
+  await sleep(2000);
+  output.innerHTML += "Đã đánh răng xong!<br>";
+
+  output.innerHTML += "b3. Đang thay quần áo...<br>";
+  await sleep(3000);
+  output.innerHTML += "Đã thay quần áo xong!<br>";
+
+  output.innerHTML += "b4. Đang di chuyển...<br>";
+  await sleep(4000);
+  output.innerHTML += "<b>Đã đến trường!</b>";
+}
+
+/* =========================
+   BÀI 2: PROMISE CHUỖI
+========================= */
+function danhRang() {
+  return new Promise(resolve => {
+    setTimeout(() => resolve("Đã đánh răng xong!"), 2000);
+  });
+}
+
+function thayQuanAo() {
+  return new Promise(resolve => {
+    setTimeout(() => resolve("Đã thay quần áo xong!"), 3000);
+  });
+}
+
+function diHoc() {
+  return new Promise(resolve => {
+    setTimeout(() => resolve("Đã đến trường!"), 4000);
+  });
+}
+
+function runBai2() {
+  const output = document.getElementById("output2");
+  output.innerHTML = "b1. Đã ngủ dậy!<br>";
+  output.innerHTML += "b2. Đang đánh răng...<br>";
+
+  danhRang()
+    .then(res => {
+      output.innerHTML += res + "<br>b3. Đang thay quần áo...<br>";
+      return thayQuanAo();
+    })
+    .then(res => {
+      output.innerHTML += res + "<br>b4. Đang di chuyển...<br>";
+      return diHoc();
+      })
+    .then(res => {
+      output.innerHTML += "<b>" + res + "</b>";
+    });
+}
+
+/* =========================
+   BÀI 3: NHẬP ĐIỂM PROMISE (BẢN NHANH)
+========================= */
+
+function nhapDiemNhanh(message) {
+  return new Promise(resolve => {
+    let diem = parseFloat(prompt(message));
+    resolve(diem);
+  });
+}
+
+async function runBai3() {
+  const output = document.getElementById("output3");
+
+  let name = prompt("Nhập họ tên sinh viên:");
+  let subject = prompt("Nhập môn học:");
+
+  let lab1 = await nhapDiemNhanh("Nhập điểm Lab 1 (10%)");
+  let lab2 = await nhapDiemNhanh("Nhập điểm Lab 2 (20%)");
+  let lab3 = await nhapDiemNhanh("Nhập điểm Lab 3 (30%)");
+  let final = await nhapDiemNhanh("Nhập điểm Thi Final (40%)");
+
+  let avg = lab1 * 0.1 + lab2 * 0.2 + lab3 * 0.3 + final * 0.4;
+  let rank = "";
+
+  if (avg < 5) rank = "Yếu";
+  else if (avg < 7) rank = "Trung Bình Khá";
+  else if (avg < 8.5) rank = "Khá";
+  else rank = "Giỏi";
+
+  output.innerHTML = `
+    <b>Sinh viên:</b> ${name}<br>
+    <b>Môn học:</b> ${subject}<br>
+    <b>Điểm trung bình:</b> ${avg.toFixed(2)}<br>
+    <b>Xếp loại:</b> ${rank}
+  `;
+}
+</script>
+
+</body>
+</html>

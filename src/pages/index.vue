@@ -117,7 +117,7 @@ export default {
                             <p>Price: {{ product.price }}</p>
                             <p>Quantity: {{ product.quantity }}</p>
                         </router-link>
-                        <button class="btn btn-dark mb-2" @click="Addtocart(product.id)">Add to cart</button>
+                        <button class="btn btn-outline-dark mb-2" @click="Addtocart(product.id)">Add to cart</button>
                     </div>
                 </div>
             </div>
@@ -175,11 +175,11 @@ div.filter-page-container {
 div.filter-page-container button {
     margin: 0 2.5px;
     padding: 5px 10px;
-    border: 0.5px solid #007bff;
+    border: 0.5px solid pink;
 }
 
 div.filter-page-container button.active {
-    background-color: #007bff;
+    background-color: pink;
     color: white;
 }
 
