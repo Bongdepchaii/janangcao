@@ -8,6 +8,9 @@ export default {
             currenpage: 1,
             limit: 5,
             totalPages: 0,
+            customer_name: '',
+            address: '',
+            phone: '',
             isLoading: true
         };
     },
@@ -91,12 +94,41 @@ export default {
         },
         // complete payment
         async completePayment() {
-            const res = await fetch("/payment/complete", { method: "POST" });
-            const data = await res.json();
-            alert(data.message);
+            // Thêm kiểm tra thông tin nhận hàng
+            if (!this.customer_name || !this.address || !this.phone) {
+                alert("Vui lòng điền đầy đủ Tên, Địa chỉ và Số điện thoại.");
+                return;
+            }
 
-            await this.fetchdata(this.currenpage, this.limit);
-            await this.fetchdatacart();
+            const paymentData = {
+                customer_name: this.customer_name,
+                address: this.address,
+                phone: this.phone
+            };
+
+            try {
+                const res = await fetch("/payment/complete", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(paymentData),
+                });
+                const data = await res.json();
+                alert(data.message);
+
+                // Reset form data sau khi hoàn tất
+                this.customer_name = '';
+                this.address = '';
+                this.phone = '';
+
+                await this.fetchdata(this.currenpage, this.limit);
+                await this.fetchdatatoal(this.limit);
+                await this.fetchdatacart();
+            } catch (error) {
+                console.error("Error during payment:", error);
+                alert("Đã xảy ra lỗi trong quá trình thanh toán.");
+            }
         },
 
         // formart vnđ
@@ -146,6 +178,16 @@ export default {
                 </div>
                 <div class="col-md-3 card p-3 card-body card-1" style="position: absolute; right: 15px;">
                     <h3>Order Detail</h3>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="customer_name" v-model="customer_name" required placeholder="Enter name">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="address" v-model="address" required placeholder="Enter name">
+                    </div>
+                    <div class="mb-3">
+                        <input type="tel" class="form-control" id="phone" v-model="phone" required placeholder="Enter phone number">
+                    </div>
+                    <hr>
                     <p>Product: {{ totalcart.total_quantity_cart }}</p>
                     <p>Price: {{ formatCurrency(totalcart.total_price_cart) }}</p>
                     <p>Shipper: 15.500 ₫</p>
@@ -270,7 +312,7 @@ h2 {
 }
 
 div.card-1 p {
-    font-size: 18px;
+    font-size: 15px;
 
 }
 
@@ -278,5 +320,8 @@ div.total {
     font-size: 20px;
     display: flex;
     justify-content: space-between;
+}
+hr{
+    margin: 5px;
 }
 </style>

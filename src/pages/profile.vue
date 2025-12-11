@@ -132,9 +132,11 @@ const toggleDetails = (orderId) => {
                                             <span 
                                                 class="badge" 
                                                 :class="{
-                                                    'badge-success': order.status === 'Pending',
-                                                    'badge-warning': order.status === 'Delivered',
-                                                    'badge-danger': order.status === 'Canceled'
+                                                    'badge-secondary': order.status === 'Pending',
+                                                    'badge-warning': order.status === 'Processing',
+                                                    'badge-info': order.status === 'Ship',
+                                                    'badge-success': order.status === 'Delivered',
+                                                    'badge-danger': order.status === 'Canceled',
                                                 }"
                                             >
                                                 {{ order.status }}
@@ -251,7 +253,12 @@ const toggleDetails = (orderId) => {
 /* Bootstrap 4 badges */
 .badge-success { background-color: #28a745; color: white; }
 .badge-warning { background-color: #ffc107; color: #212529; }
+.badge-secondary { 
+    background-color: #6c757d; 
+    color: white; /* Chữ trắng */
+}
 .badge-danger { background-color: #dc3545; color: white; }
+.badge-info { background-color: #17a2b8; color: white; }
 .btn-outline-info {
     border-color: #17a2b8;
     color: #17a2b8;

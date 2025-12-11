@@ -13,11 +13,11 @@
 <body class="bg-light">
 
 <div class="container py-4">
-  <h1 class="text-center text-primary mb-4">LAB 8 - jQuery & AJAX</h1>
+  <h1 class="text-center text-dark mb-4">LAB 8</h1>
 
   <!-- ===================== BÀI 1 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-success text-white">Bài 1: jQuery Selector nâng cao</div>
+    <div class="card-header">Bài 1: jQuery Selector up</div>
     <div class="card-body">
 
       <span>Line 0 Lorem ipsum</span><br>
@@ -36,15 +36,15 @@
         <li>li 5</li>
       </ul>
 
-      <button id="runBai1" class="btn btn-success mt-3">Áp dụng CSS</button>
+      <button id="runBai1" class="btn btn-outline-success mt-3">Confirm CSS</button>
     </div>
   </div>
 
   <!-- ===================== BÀI 2 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-warning">Bài 2: AJAX Users (Bảng)</div>
+    <div class="card-header">Bài 2: AJAX Users table</div>
     <div class="card-body">
-      <button id="loadUsers" class="btn btn-warning mb-3">Load Users</button>
+      <button id="loadUsers" class="btn btn-outline-warning mb-3">Load Users</button>
 
       <table class="table table-bordered">
         <thead>
@@ -63,9 +63,9 @@
 
   <!-- ===================== BÀI 3 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-info text-white">Bài 3: AJAX Products (Bảng)</div>
+    <div class="card-header">Bài 3: AJAX Products (Table)</div>
     <div class="card-body">
-      <button id="loadProducts" class="btn btn-info mb-3">Load Products</button>
+      <button id="loadProducts" class="btn btn-outline-info mb-3">Load Products</button>
 
       <table class="table table-bordered">
         <thead>
@@ -84,7 +84,7 @@
 
   <!-- ===================== BÀI 4 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-danger text-white">Bài 4: POST Product + Validate</div>
+    <div class="card-header">Bài 4: POST Product + Check Validate</div>
     <div class="card-body">
 
       <form id="productForm">
@@ -104,7 +104,7 @@
         <input type="text" id="pantone_value" class="form-control w-50">
         <span id="pantoneErr" class="text-danger"></span><br>
 
-        <button type="button" id="submitProduct" class="btn btn-danger mt-3">
+        <button type="button" id="submitProduct" class="btn btn-outline-danger mt-3">
           Submit
         </button>
       </form>
@@ -115,10 +115,10 @@
 <script>
 /* ===================== BÀI 1 ===================== */
 $("#runBai1").click(function () {
-  $("ul li:first").parent().css("background", "yellow");     // UL chứa li:first
+  $("ul li:first").parent().css("background", "pink");     // UL chứa li:first
   $("#line1").next().css("color", "red");                    // sau #line1
   $("p[selectedLine]").prev().css("background", "lightgreen");
-  $("ul li").css("color", "blue");                           // toàn bộ li
+  $("ul li").css("color", "Red");                           // toàn bộ li
 });
 
 /* ===================== BÀI 2 (API GIẢ LẬP) ===================== */
@@ -219,3 +219,10 @@ $("#submitProduct").click(function () {
 
 </body>
 </html>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 40%;
+  }
+</style>

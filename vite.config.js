@@ -45,7 +45,18 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/productcount/, "/productcount"),
       },
+      // Admin api proxy
       "/addproduct": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
+      },
+      "/admin/order/update/": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
+      },
+      "/admin/orders": {
         target: "http://localhost:8080",
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),

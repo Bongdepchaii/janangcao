@@ -13,11 +13,11 @@
 <body class="bg-light">
 
 <div class="container py-4">
-  <h1 class="text-center text-primary mb-4">LAB 7 - jQuery</h1>
+  <h1 class="text-center text-dark mb-4">LAB 7 - jQuery</h1>
 
   <!-- ===================== BÀI 1 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-success text-white">Bài 1: jQuery Selector & CSS</div>
+    <div class="card-header">Bài 1: jQuery Selector and CSS</div>
     <div class="card-body">
 
       <span>Line 0 Lorem ipsum dolor sit amet</span><br>
@@ -36,44 +36,45 @@
         <li>li 5</li>
       </ul>
 
-      <button class="btn btn-success mt-3" id="runBai1">Đổi màu</button>
+      <button class="btn btn-outline-success mt-3" id="runBai1">Đổi color</button>
     </div>
   </div>
 
   <!-- ===================== BÀI 2 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-warning">Bài 2: Validate Username</div>
+    <div class="card-header">Bài 2: Check validate user</div>
     <div class="card-body">
-      Nhập username:
+      Enter the username:
       <input type="text" id="username" class="form-control w-50 mb-2">
       <span id="errMsg" class="text-danger"></span>
       <br>
-      <button id="validateUser" class="btn btn-warning mt-2">Kiểm tra</button>
+      <button id="validateUser" class="btn btn-outline-warning mt-2">Kiểm tra</button>
     </div>
   </div>
 
   <!-- ===================== BÀI 3 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-info text-white">Bài 3: Add Student</div>
+    <div class="card-header">Bài 3: Add Student</div>
     <div class="card-body">
-      <h4>Danh sách sinh viên</h4>
+      <h4>List student</h4>
 
       <input type="text" id="studentName" class="form-control w-50 mb-2">
       <span id="errStudent" class="text-danger"></span>
       <br>
-      <button id="addStudent" class="btn btn-info mb-3">Add Student</button>
+      <button id="addStudent" class="btn btn-outline-info mb-3">Add Student</button>
 
       <ul id="studentList">
-        <li>Nguyễn Đại Dương</li>
+        <li>Thành Bùi </li>
+        <li>Yến Trang </li>
       </ul>
     </div>
   </div>
 
   <!-- ===================== BÀI 4 ===================== -->
   <div class="card mb-4">
-    <div class="card-header bg-danger text-white">Bài 4: Fetch API & Hiển thị Table</div>
+    <div class="card-header">Bài 4: Fetch API and Hide Table</div>
     <div class="card-body">
-      <button id="loadProducts" class="btn btn-danger mb-3">Load Products</button>
+      <button id="loadProducts" class="btn btn-outline-danger mb-3">Load Products</button>
 
       <table class="table table-bordered">
         <thead>
@@ -99,15 +100,15 @@ $("#runBai1").click(function () {
   $("#line1").css("background", "lightblue");
   $(".line2").css("background", "lightgreen");
   $("p[line-count='line3']").css("background", "orange");
-  $("p[selectedLine]").css("background", "pink");
+  $("p[selectedLine]").css("background", "yellowgreen");
 
   $("li:first").css("background", "violet");
   $("li:last").css("background", "red");
-  $("li:even").css("background", "#ddd");
+  $("li:even").css("background", "#pink");
 
   $("li").hover(
     function () {
-      $(this).css("background", "cyan");
+      $(this).css("background", "red");
     },
     function () {
       $(this).css("background", "");
@@ -154,11 +155,11 @@ $("#addStudent").click(function () {
 $("#loadProducts").click(function () {
   const fakeApi = {
     data: [
-      { id: 1, name: "cerulean", year: 2000, color: "#98B2D1", pantone_value: "15-4020" },
-      { id: 2, name: "fuchsia rose", year: 2001, color: "#C74375", pantone_value: "17-2031" },
-      { id: 3, name: "true red", year: 2002, color: "#BF1932", pantone_value: "19-1664" },
-      { id: 4, name: "aqua sky", year: 2003, color: "#7BC4C4", pantone_value: "14-4811" },
-      { id: 5, name: "tigerlily", year: 2004, color: "#E2583E", pantone_value: "17-1456" }
+      { id: 1, name: "iPhone", year: 2000, color: "#98B2D1", pantone_value: "15-4020" },
+      { id: 2, name: "Samsung", year: 2001, color: "#C74375", pantone_value: "17-2031" },
+      { id: 3, name: "Xiaomi", year: 2002, color: "#BF1932", pantone_value: "19-1664" },
+      { id: 4, name: "Nokia", year: 2003, color: "#7BC4C4", pantone_value: "14-4811" },
+      { id: 5, name: "Vivo", year: 2004, color: "#E2583E", pantone_value: "17-1456" }
     ]
   };
 
@@ -180,4 +181,10 @@ $("#loadProducts").click(function () {
 
 </body>
 </html>
- lab 7
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 40%;
+  }
+</style>

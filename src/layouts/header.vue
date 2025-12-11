@@ -12,7 +12,7 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <router-link to="/addproduct" class="nav-link">Add</router-link>
+                        <router-link to="/addproduct" class="nav-link">Product</router-link>
                     </li>
                 </ul>
             </div>

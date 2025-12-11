@@ -117,6 +117,7 @@ app.get("/productdetail/:id", (req, res) => {
 });
 
 
+// ADMIN 
 
 // api add product
 app.post("/addproduct", (req, res) => {
@@ -232,6 +233,85 @@ app.put("/updateproduct/:id", (req, res) => {
   });
 });
 
+// API get all orders with details
+app.get("/admin/orders", (req, res) => {
+  const sql = `SELECT o.id AS order_id, o.create_at, o.payment, o.total AS order_total, o.customer_name, o.address, o.phone, (o.total - 15500) AS subtotal, oi.quantity AS qty, oi.price AS unit_price, p.name AS product_name, p.img 
+    FROM orders o 
+    JOIN order_item oi ON o.id = oi.idorder 
+    JOIN product p ON oi.idproduct = p.id 
+    ORDER BY o.id DESC, oi.id DESC`;
+
+  con.query(sql, (err, result) => {
+    if (err) {
+      console.error("SQL Error in /admin/orders:", err);
+      return res.status(500).json({ message: "DB error" });
+    }
+
+    const orders = {};
+    const shippingFee = 15500;
+
+    result.forEach(item => {
+      if (!orders[item.order_id]) {
+        orders[item.order_id] = {
+          id: item.order_id,
+          date: item.create_at,
+          status: item.payment,
+          total: item.order_total,
+          customer_name: item.customer_name, // Bổ sung
+          address: item.address, // Bổ sung
+          phone: item.phone, // Bổ sung
+          subtotal: item.order_total - shippingFee,
+          shipping: shippingFee, 
+          details: []
+        };
+      }
+
+      orders[item.order_id].details.push({
+        name: item.product_name,
+        qty: item.qty,
+        price: item.unit_price,
+        img: item.img
+      });
+    });
+
+    res.json(Object.values(orders));
+  });
+});
+
+app.put("/admin/order/update/:id", (req, res) => {
+  const orderId = req.params.id;
+  const { status } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ message: "Status is required." });
+  }
+
+  let sql;
+  let params;
+
+  if (status.toLowerCase() === 'canceled') {
+    sql = "UPDATE orders SET payment = ?, cannel_at = ? WHERE id = ?";
+    params = [status, new Date(), orderId];
+  } else {
+    sql = "UPDATE orders SET payment = ? WHERE id = ?";
+    params = [status, orderId];
+  }
+
+  con.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("Database error updating status:", err);
+      return res.status(500).json({ message: "Error updating order status." });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    res.json({ message: `Order ID ${orderId} status updated to ${status}.` });
+  });
+});
+
+
+// USER
+
 // addtocart api
 app.post("/addtocart/:id", (req, res) => {
   const id = req.params.id;
@@ -315,71 +395,76 @@ app.get("/order", (req, res) => {
 
 // complete payment
 app.post("/payment/complete", async (req, res) => {
-  // Query lấy thông tin chi tiết sản phẩm trong giỏ hàng (bao gồm giá)
-  const getCartDetails = `SELECT gh.idproduct, gh.quantity, sp.price FROM cart gh LEFT JOIN product sp ON gh.idproduct = sp.id`;
-  const now = new Date();
-  const shippingFee = 15000; // Phí ship cố định
-
-  try {
-    const cartItems = await new Promise((resolve, reject) => {
-      con.query(getCartDetails, (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      });
-    });
-
-    if (cartItems.length === 0) return res.status(400).json({ message: "Cart empty" });
-
-    // Tính tổng tiền
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const totalAmount = subtotal + shippingFee;
-
-    // BƯỚC 1: TẠO HEADER ĐƠN HÀNG (Bảng orders)
-    const orderId = await new Promise((resolve, reject) => {
-      const insertOrderHeader = `INSERT INTO orders (total, create_at, payment) VALUES (?, ?, ?)`;
-      con.query(insertOrderHeader, [totalAmount, now, "Pending"], (err, result) => {
-        if (err) return reject(err);
-        resolve(result.insertId); // Lấy ID của bản ghi vừa tạo
-      });
-    });
-
-    // BƯỚC 2: TẠO DETAIL ĐƠN HÀNG (Bảng order_item) và cập nhật quantity
-    for (const item of cartItems) {
-      // Thêm chi tiết vào order_item
-      await new Promise((resolve, reject) => {
-        const insertOrderDetail = `INSERT INTO order_item (idorder, idproduct, quantity, price) VALUES (?, ?, ?, ?)`;
-        con.query(insertOrderDetail, [orderId, item.idproduct, item.quantity, item.price], (err) => {
-          if (err) {
-            console.error("Insert Order Item Error:", err);
-            return reject(err);
-          }
-          resolve();
-        });
-      });
-
-      // Cập nhật số lượng sản phẩm (giữ nguyên logic)
-      await new Promise((resolve, reject) => {
-        const updateProduct = `UPDATE product SET quantity = quantity - ? WHERE id = ?`;
-        con.query(updateProduct, [item.quantity, item.idproduct], (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
+    // Thêm các biến mới nhận từ body request
+    const { customer_name, address, phone } = req.body;
+    
+    // Kiểm tra dữ liệu bắt buộc
+    if (!customer_name || !address || !phone) {
+        return res.status(400).json({ message: "Thiếu thông tin nhận hàng: tên, địa chỉ hoặc số điện thoại." });
     }
 
-    // BƯỚC 3: Xóa giỏ hàng
-    await new Promise((resolve, reject) => {
-      con.query("DELETE FROM cart", (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+    const getCartDetails = `SELECT gh.idproduct, gh.quantity, sp.price FROM cart gh LEFT JOIN product sp ON gh.idproduct = sp.id`;
+    const now = new Date();
+    const shippingFee = 15500; 
 
-    res.json({ message: `Payment success. Order ID: ${orderId}` });
-  } catch (error) {
-    console.error("Payment Process Error:", error);
-    res.status(500).json({ message: "An error occurred during payment. Check server logs." });
-  }
+    try {
+        const cartItems = await new Promise((resolve, reject) => {
+            con.query(getCartDetails, (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
+            });
+        });
+
+        if (cartItems.length === 0) return res.status(400).json({ message: "Giỏ hàng rỗng" });
+
+        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const totalAmount = subtotal + shippingFee;
+
+        // Cập nhật query INSERT INTO orders để thêm thông tin người nhận
+        const orderId = await new Promise((resolve, reject) => {
+            const insertOrderHeader = `INSERT INTO orders (total, create_at, payment, customer_name, address, phone) VALUES (?, ?, ?, ?, ?, ?)`;
+            con.query(insertOrderHeader, [totalAmount, now, "Pending", customer_name, address, phone], (err, result) => {
+                if (err) return reject(err);
+                resolve(result.insertId); 
+            });
+        });
+
+        // Phần còn lại: Thêm vào order_item, cập nhật product quantity, xóa cart
+        for (const item of cartItems) {
+            // ... (Phần logic insertOrderDetail, updateProduct, deleteCart giữ nguyên)
+            await new Promise((resolve, reject) => {
+                const insertOrderDetail = `INSERT INTO order_item (idorder, idproduct, quantity, price) VALUES (?, ?, ?, ?)`;
+                con.query(insertOrderDetail, [orderId, item.idproduct, item.quantity, item.price], (err) => {
+                    if (err) {
+                        console.error("Insert Order Item Error:", err);
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            });
+
+            await new Promise((resolve, reject) => {
+                const updateProduct = `UPDATE product SET quantity = quantity - ? WHERE id = ?`;
+                con.query(updateProduct, [item.quantity, item.idproduct], (err) => {
+                    if (err) return reject(err);
+                    resolve();
+                });
+            });
+        }
+        
+        await new Promise((resolve, reject) => {
+            con.query("DELETE FROM cart", (err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+
+        res.json({ message: `Thanh toán thành công. Mã đơn hàng: ${orderId}` });
+    } catch (error) {
+        console.error("Lỗi trong quá trình thanh toán:", error);
+        res.status(500).json({ message: "Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng kiểm tra nhật ký máy chủ." });
+    }
 });
 
 // history order user
@@ -396,7 +481,7 @@ app.get("/order/history", (req, res) => {
           id: item.order_id,
           date: item.create_at,
           status: item.payment,
-          total: item.order_total, 
+          total: item.order_total,
           details: []
         };
       }
@@ -404,7 +489,7 @@ app.get("/order/history", (req, res) => {
       history[item.order_id].details.push({
         name: item.product_name,
         qty: item.qty,
-        price: item.unit_price, 
+        price: item.unit_price,
         img: item.img
       });
     });
