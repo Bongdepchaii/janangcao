@@ -1,8 +1,63 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue'; // 1. Import onMounted
 
-// Dữ liệu mẫu (Sample data)
-// Trong ứng dụng thực tế, dữ liệu này sẽ được tải từ API
+// State để quản lý dữ liệu thực tế
+const purchaseHistory = ref([]); // Đã xóa dữ liệu mẫu
+const expandedOrderId = ref(null);
+
+// Hàm định dạng tiền tệ (giữ nguyên)
+const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return '0 VNĐ';
+    // Lấy giá trị tuyệt đối để tránh lỗi định dạng nếu total là 0 hoặc null
+    const safeAmount = Math.abs(amount);
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(safeAmount);
+}
+
+// Hàm tải lịch sử đơn hàng từ API
+const fetchHistory = async () => {
+    try {
+        const res = await fetch("/order/history");
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        purchaseHistory.value = await res.json();
+        console.log("History loaded:", purchaseHistory.value);
+    } catch (error) {
+        console.error("Error fetching order history:", error);
+        alert("Lỗi khi tải lịch sử đơn hàng. Vui lòng kiểm tra console.");
+        purchaseHistory.value = [];
+    }
+}
+
+// Hàm hủy đơn hàng
+const cancelOrder = async (id) => {
+    if (!confirm(`Bạn có chắc muốn hủy đơn hàng ID: ${id}?`)) {
+        return;
+    }
+    try {
+        const res = await fetch(`/order/cancel/${id}`, { method: "PUT" });
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert(data.message);
+            // Reload history sau khi hủy
+            await fetchHistory();
+        } else {
+             alert(`Hủy đơn hàng thất bại: ${data.message || 'Lỗi không xác định'}`);
+        }
+    } catch (error) {
+        console.error("Error canceling order:", error);
+        alert("Có lỗi xảy ra khi hủy đơn hàng.");
+    }
+}
+
+// Tải dữ liệu khi component được mount
+onMounted(async () => {
+    await fetchHistory();
+});
+
+
+// Dữ liệu người dùng (Giữ nguyên hoặc bạn có thể fetch từ API khác)
 const user = ref({
     name: "Thanh Bui",
     email: "Bongdepchaii@example.com",
@@ -10,45 +65,8 @@ const user = ref({
     address: "Tan Phu HCM City, Vietnam"
 });
 
-const purchaseHistory = ref([
-    {
-        id: 'DH1001',
-        date: '2024-10-01',
-        total: 550000, // VND
-        status: 'Đã giao hàng',
-        details: [
-            { name: "Áo thun cơ bản", qty: 2, price: 150000 },
-            { name: "Quần Jeans Slim Fit", qty: 1, price: 250000 }
-        ]
-    },
-    {
-        id: 'DH1002',
-        date: '2024-10-05',
-        total: 800000,
-        status: 'Đang xử lý',
-        details: [
-            { name: "Giày thể thao A", qty: 1, price: 800000 }
-        ]
-    },
-    {
-        id: 'DH1003',
-        date: '2024-10-10',
-        total: 120000,
-        status: 'Đã hủy',
-        details: [
-            { name: "Mũ lưỡi trai X", qty: 1, price: 120000 }
-        ]
-    }
-]);
 
-// Hàm định dạng tiền tệ (cho dễ nhìn)
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-}
-
-// State để quản lý việc mở/đóng chi tiết đơn hàng
-const expandedOrderId = ref(null);
-
+// State và hàm quản lý việc mở/đóng chi tiết đơn hàng (giữ nguyên)
 const toggleDetails = (orderId) => {
     if (expandedOrderId.value === orderId) {
         expandedOrderId.value = null;
@@ -60,109 +78,129 @@ const toggleDetails = (orderId) => {
 
 <template>
     <body>
-        
-    <div class="container my-5 user-profile-page">
-        <h1 class="text-center mb-4"></h1>
-        
-        <div class="row">
-            <div class="col-lg-4 col-md-12 mb-4">
-                <div class="card shadow-sm profile-card">
-                    <div class="card-header text-black">
-                        <i class="fa fa-user-circle mr-2"></i>User profile
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <strong><i class="fa fa-id-card-o mr-2"></i>Name:</strong>
-                            <p class="card-text">{{ user.name }}</p>
+        <div class="container my-5 user-profile-page">
+            <h1 class="text-center mb-4">Profile</h1> <div class="row">
+                <div class="col-lg-4 col-md-12 mb-4">
+                    <div class="card shadow-sm profile-card">
+                        <div class="card-header text-black">
+                            <i class="fa fa-user-circle mr-2"></i>User profile
                         </div>
-                        <div class="mb-3">
-                            <strong><i class="fa fa-envelope mr-2"></i>Email:</strong>
-                            <p class="card-text">{{ user.email }}</p>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong><i class="fa fa-id-card-o mr-2"></i>Name:</strong>
+                                <p class="card-text">{{ user.name }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong><i class="fa fa-envelope mr-2"></i>Email:</strong>
+                                <p class="card-text">{{ user.email }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong><i class="fa fa-phone mr-2"></i>Phone:</strong>
+                                <p class="card-text">{{ user.phone }}</p>
+                            </div>
+                            <div>
+                                <strong><i class="fa fa-map-marker mr-2"></i>Address:</strong>
+                                <p class="card-text">{{ user.address }}</p>
+                            </div>
+                            <button class="btn btn-outline-primary mt-3 w-100">
+                                <i class="fa fa-pencil"></i> Edit Profile
+                            </button>
                         </div>
-                        <div class="mb-3">
-                            <strong><i class="fa fa-phone mr-2"></i>Phone:</strong>
-                            <p class="card-text">{{ user.phone }}</p>
-                        </div>
-                        <div>
-                            <strong><i class="fa fa-map-marker mr-2"></i>Address:</strong>
-                            <p class="card-text">{{ user.address }}</p>
-                        </div>
-                        <button class="btn btn-outline-primary mt-3 w-100">
-                            <i class="fa fa-pencil"></i> Edit Profile
-                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-8 col-md-12">
-                <div class="card shadow-sm history-card">
-                    <div class="card-header text-black">
-                        <i class="fa fa-history mr-2"></i> History order
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            <li 
-                                v-for="order in purchaseHistory" 
-                                :key="order.id" 
-                                class="list-group-item"
-                                :class="{ 'expanded': expandedOrderId === order.id }"
-                            >
-                                <div class="d-flex justify-content-between align-items-center order-summary">
-                                    <div class="order-info">
-                                        <p class="mb-0"><strong>Id:</strong> {{ order.id }}</p>
-                                        <p class="mb-0 text-muted">Date: {{ order.date }}</p>
+                <div class="col-lg-8 col-md-12">
+                    <div class="card shadow-sm history-card">
+                        <div class="card-header text-black">
+                            <i class="fa fa-history mr-2"></i> History order
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                <li 
+                                    v-for="order in purchaseHistory" 
+                                    :key="order.id" 
+                                    class="list-group-item"
+                                    :class="{ 'expanded': expandedOrderId === order.id }"
+                                >
+                                    <div class="d-flex justify-content-between align-items-center order-summary">
+                                        <div class="order-info">
+                                            <p class="mb-0"><strong>Id:</strong> #{{ order.id }}</p>
+                                            <p class="mb-0 text-muted">Date: {{ new Date(order.date).toLocaleDateString('vi-VN') }}</p>
+                                        </div>
+                                        <div class="order-price text-right">
+                                            <p class="mb-0"><strong>{{ formatCurrency(order.total) }}</strong></p>
+                                            <span 
+                                                class="badge" 
+                                                :class="{
+                                                    'badge-success': order.status === 'Pending',
+                                                    'badge-warning': order.status === 'Delivered',
+                                                    'badge-danger': order.status === 'Canceled'
+                                                }"
+                                            >
+                                                {{ order.status }}
+                                            </span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <button 
+                                                v-if="order.status === 'Pending'" 
+                                                @click.stop="cancelOrder(order.id)" 
+                                                class="btn btn-outline-danger btn-sm ml-3"
+                                                style="margin-right: 10px;"
+                                            >
+                                                Cannel
+                                            </button>
+                                            
+                                            <button 
+                                                @click="toggleDetails(order.id)" 
+                                                class="btn btn-outline-primary btn-sm ml-3"
+                                            >
+                                                <i class="fa" :class="expandedOrderId === order.id ? 'fa-angle-up' : 'fa-angle-down'"></i> Check
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="order-price text-right">
-                                        <p class="mb-0"><strong>{{ formatCurrency(order.total) }}</strong></p>
-                                        <span 
-                                            class="badge" 
-                                            :class="{
-                                                'badge-success': order.status === 'Đã giao hàng',
-                                                'badge-warning': order.status === 'Đang xử lý',
-                                                'badge-danger': order.status === 'Đã hủy'
-                                            }"
-                                        >
-                                            {{ order.status }}
-                                        </span>
+                                    
+                                    <div v-if="expandedOrderId === order.id" class="order-details mt-3 p-3 border-top">
+                                        <h6>Order details {{ order.id }}:</h6>
+                                        <table class="table table-sm table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Product</th>
+                                                    <th class="text-center">Quantity</th>
+                                                    <th class="text-right">Price</th>
+                                                    <th class="text-right">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="item in order.details" :key="item.name">
+                                                    <td>{{ item.name }}</td>
+                                                    <td class="text-center">{{ item.qty }}</td>
+                                                    <td class="text-right">{{ formatCurrency(item.price) }}</td>
+                                                    <td class="text-right">
+                                                        {{ formatCurrency(item.qty * item.price) }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3" class="text-right">Ship:</td>
+                                                    <td class="text-right">{{ formatCurrency(15500) }}</td>
+                                                </tr>
+                                                <tr class="font-weight-bold">
+                                                    <td colspan="3" class="text-right">Total Payment:</td>
+                                                    <td class="text-right text-primary">{{ formatCurrency(order.total) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    <button 
-                                        @click="toggleDetails(order.id)" 
-                                        class="btn btn-outline-primary btn-sm ml-3"
-                                    >
-                                        <i class="fa" :class="expandedOrderId === order.id ? 'fa-angle-up' : 'fa-angle-down'">Check</i>
-                                    </button>
-                                </div>
-                                
-                                <div v-if="expandedOrderId === order.id" class="order-details mt-3 p-3 border-top">
-                                    <h6>Chi tiết Đơn hàng {{ order.id }}:</h6>
-                                    <table class="table table-sm table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Sản phẩm</th>
-                                                <th class="text-center">SL</th>
-                                                <th class="text-right">Đơn giá</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="item in order.details" :key="item.name">
-                                                <td>{{ item.name }}</td>
-                                                <td class="text-center">{{ item.qty }}</td>
-                                                <td class="text-right">{{ formatCurrency(item.price) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </li>
-                            <li v-if="purchaseHistory.length === 0" class="list-group-item text-center text-muted">
-                                Bạn chưa có đơn hàng nào.
-                            </li>
-                        </ul>
+                                </li>
+                                <li v-if="purchaseHistory.length === 0" class="list-group-item text-center text-muted">
+                                    Not empty history order
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-        </body>
+    </body>
 </template>
 
 <style scoped>

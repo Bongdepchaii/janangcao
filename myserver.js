@@ -305,119 +305,124 @@ app.delete("/deletecart/:id", (req, res) => {
 });
 
 // Order hide data total
-app.get("/order", (req, res) =>{
+app.get("/order", (req, res) => {
   const queryorder = "SELECT SUM(gh.quantity) AS total_quantity_cart, SUM(gh.quantity * sp.price) AS total_price_cart FROM cart gh LEFT JOIN product sp ON gh.idproduct = sp.id;"
   con.query(queryorder, (err, result) => {
-    if (err) return res.status(500).json({ error: "DB error"});
+    if (err) return res.status(500).json({ error: "DB error" });
     res.json(result[0]);
   })
-})
-
-// payment
-app.post("/complete-order", async (req, res) => {
-    const { cartItems, totalAmount, payment } = req.body;
-    
-    // Giả định phí vận chuyển cố định: 15000 ₫
-    const SHIPPING_FEE = 15000; 
-
-    if (!cartItems || cartItems.length === 0) {
-        return res.status(400).json({ message: "Giỏ hàng trống." });
-    }
-
-    // 1. Khởi tạo transaction (QUAN TRỌNG để đảm bảo tất cả đều thành công hoặc thất bại)
-    con.beginTransaction(async (err) => {
-        if (err) {
-            console.error("Error starting transaction:", err);
-            return res.status(500).json({ message: "Lỗi Server (Transaction)." });
-        }
-
-        try {
-            // Lấy ra các ID sản phẩm trong giỏ hàng để kiểm tra tính hợp lệ và giá
-            const productIds = cartItems.map(item => item.idproduct);
-            const placeholders = productIds.map(() => "?").join(",");
-            
-            // 2. Lấy giá sản phẩm hiện tại từ bảng product (để đảm bảo giá không bị giả mạo từ client)
-            const productSql = `SELECT id, price FROM product WHERE id IN (${placeholders})`;
-            const [productsPrice] = await con.promise().query(productSql, productIds);
-            
-            const productMap = {};
-            productsPrice.forEach(p => {
-                productMap[p.id] = p.price;
-            });
-            
-            let calculatedTotal = 0;
-            const orderDetails = [];
-
-            for (const item of cartItems) {
-                const serverPrice = productMap[item.idproduct];
-                if (serverPrice === undefined) {
-                    throw new Error(`Sản phẩm ID ${item.idproduct} không tồn tại.`);
-                }
-                
-                // Tính toán tổng tiền sản phẩm
-                calculatedTotal += serverPrice * item.quantitycart;
-
-                // Chuẩn bị dữ liệu chi tiết đơn hàng
-                orderDetails.push({
-                    idproduct: item.idproduct,
-                    quantity: item.quantitycart,
-                    price: serverPrice // Giá tại thời điểm đặt hàng
-                });
-            }
-
-            const finalTotal = calculatedTotal + SHIPPING_FEE;
-            
-            // 3. Tạo bản ghi Đơn hàng chính (Bảng ordercart)
-            const orderSql = `INSERT INTO ordercart (idproduct, idcart, total, price, create_at, create_cannel, payment) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            // Do cấu trúc bảng ordercart của bạn hơi kỳ lạ (có idproduct, idcart, price), tôi sẽ điền tạm giá trị hợp lý nhất
-            // Giả định: total là tổng tiền, price là tổng tiền sản phẩm.
-            
-            const now = new Date();
-            const [orderResult] = await con.promise().query(orderSql, [
-                orderDetails[0].idproduct, // Lấy ID product đầu tiên (Cần FIX cấu trúc DB)
-                cartItems[0].id, // Lấy ID cart đầu tiên (Cần FIX cấu trúc DB)
-                finalTotal, // Total: Tổng tiền cuối cùng
-                calculatedTotal, // Price: Tổng tiền sản phẩm
-                now,
-                now, // create_cannel -> tôi để tạm là now vì không có status/cancel_at
-                payment || 'COD' // Phương thức thanh toán
-            ]);
-
-            const orderId = orderResult.insertId; // Lấy ID của đơn hàng vừa tạo
-
-            // 4. Tạo bản ghi Chi tiết Đơn hàng (Giả định bạn có bảng order_detail nếu không thì bỏ qua bước này)
-            // LƯU Ý: Vì bạn chưa có bảng order_detail, tôi sẽ bỏ qua bước này để không làm lỗi code của bạn.
-            // Nếu bạn muốn lưu chi tiết, bạn cần tạo bảng và thêm đoạn code lặp qua orderDetails ở đây.
-
-            // 5. Xóa Giỏ hàng (Cart)
-            const deleteCartSql = `DELETE FROM cart`;
-            await con.promise().query(deleteCartSql);
-
-            // 6. Hoàn tất Transaction
-            con.commit((commitErr) => {
-                if (commitErr) {
-                    con.rollback(() => {
-                        console.error("Error committing transaction:", commitErr);
-                        return res.status(500).json({ message: "Lỗi Server (Commit)." });
-                    });
-                }
-                res.json({ 
-                    message: "Order placed successfully!", 
-                    orderId: orderId,
-                    total: finalTotal
-                });
-            });
-
-        } catch (error) {
-            // Rollback nếu có bất kỳ lỗi nào xảy ra
-            con.rollback(() => {
-                console.error("Transaction rolled back due to error:", error.message);
-                res.status(500).json({ message: `Đặt hàng thất bại: ${error.message}` });
-            });
-        }
-    });
 });
 
+// complete payment
+app.post("/payment/complete", async (req, res) => {
+  // Query lấy thông tin chi tiết sản phẩm trong giỏ hàng (bao gồm giá)
+  const getCartDetails = `SELECT gh.idproduct, gh.quantity, sp.price FROM cart gh LEFT JOIN product sp ON gh.idproduct = sp.id`;
+  const now = new Date();
+  const shippingFee = 15000; // Phí ship cố định
+
+  try {
+    const cartItems = await new Promise((resolve, reject) => {
+      con.query(getCartDetails, (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      });
+    });
+
+    if (cartItems.length === 0) return res.status(400).json({ message: "Cart empty" });
+
+    // Tính tổng tiền
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalAmount = subtotal + shippingFee;
+
+    // BƯỚC 1: TẠO HEADER ĐƠN HÀNG (Bảng orders)
+    const orderId = await new Promise((resolve, reject) => {
+      const insertOrderHeader = `INSERT INTO orders (total, create_at, payment) VALUES (?, ?, ?)`;
+      con.query(insertOrderHeader, [totalAmount, now, "Pending"], (err, result) => {
+        if (err) return reject(err);
+        resolve(result.insertId); // Lấy ID của bản ghi vừa tạo
+      });
+    });
+
+    // BƯỚC 2: TẠO DETAIL ĐƠN HÀNG (Bảng order_item) và cập nhật quantity
+    for (const item of cartItems) {
+      // Thêm chi tiết vào order_item
+      await new Promise((resolve, reject) => {
+        const insertOrderDetail = `INSERT INTO order_item (idorder, idproduct, quantity, price) VALUES (?, ?, ?, ?)`;
+        con.query(insertOrderDetail, [orderId, item.idproduct, item.quantity, item.price], (err) => {
+          if (err) {
+            console.error("Insert Order Item Error:", err);
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+
+      // Cập nhật số lượng sản phẩm (giữ nguyên logic)
+      await new Promise((resolve, reject) => {
+        const updateProduct = `UPDATE product SET quantity = quantity - ? WHERE id = ?`;
+        con.query(updateProduct, [item.quantity, item.idproduct], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+
+    // BƯỚC 3: Xóa giỏ hàng
+    await new Promise((resolve, reject) => {
+      con.query("DELETE FROM cart", (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+
+    res.json({ message: `Payment success. Order ID: ${orderId}` });
+  } catch (error) {
+    console.error("Payment Process Error:", error);
+    res.status(500).json({ message: "An error occurred during payment. Check server logs." });
+  }
+});
+
+// history order user
+app.get("/order/history", (req, res) => {
+  const sql = `SELECT o.id AS order_id, o.create_at, o.payment, o.total AS order_total, oi.quantity AS qty, oi.price AS unit_price, p.name AS product_name, p.img FROM orders o JOIN order_item oi ON o.id = oi.idorder JOIN product p ON oi.idproduct = p.id ORDER BY o.id DESC, oi.id DESC`;
+  con.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+
+    const history = {};
+
+    result.forEach(item => {
+      if (!history[item.order_id]) {
+        history[item.order_id] = {
+          id: item.order_id,
+          date: item.create_at,
+          status: item.payment,
+          total: item.order_total, 
+          details: []
+        };
+      }
+
+      history[item.order_id].details.push({
+        name: item.product_name,
+        qty: item.qty,
+        price: item.unit_price, 
+        img: item.img
+      });
+    });
+
+    res.json(Object.values(history));
+  });
+});
+
+
+// cannel order
+app.put("/order/cancel/:id", (req, res) => {
+  const sql = "UPDATE orders SET payment = 'Canceled', cannel_at = ? WHERE id = ?";
+  con.query(sql, [new Date(), req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Error cancel order" });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
+    res.json({ message: "Order canceled" });
+  });
+});
 
 // app use image
 app.use("/images", express.static(storageDir));

@@ -26,6 +26,12 @@ const routes = [
     meta: { layout: "default" },
   },
   {
+    path: "/customerorder",
+    name: "Customerorder",
+    component: () => import("../pages/customerorder.vue"),
+    meta: { layout: "default" },
+  },
+  {
     path: "/cart",
     name: "Cart",
     component: () => import("../pages/cart.vue"),

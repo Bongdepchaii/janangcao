@@ -7,7 +7,8 @@ export default {
             data: [],
             currenpage: 1,
             limit: 5,
-            totalPages: 0
+            totalPages: 0,
+            isLoading: true
         };
     },
 
@@ -16,6 +17,7 @@ export default {
         // hide data product to cart
         async fetchdata(page, limit) {
             const url = `cart/${page}/${limit}`;
+            this.isLoading = true;
             try {
                 const res = await fetch(url);
                 if (!res.ok) {
@@ -27,6 +29,9 @@ export default {
             } catch (error) {
                 console.error("error fetching data: ", error);
                 this.data = [];
+            } finally {
+                // 2. Đặt isLoading = false sau khi fetch hoàn tất (thành công hoặc thất bại)
+                this.isLoading = false;
             }
         },
         // page item cart
@@ -84,6 +89,16 @@ export default {
                 this.totalcart = [];
             }
         },
+        // complete payment
+        async completePayment() {
+            const res = await fetch("/payment/complete", { method: "POST" });
+            const data = await res.json();
+            alert(data.message);
+
+            await this.fetchdata(this.currenpage, this.limit);
+            await this.fetchdatacart();
+        },
+
         // formart vnđ
         formatCurrency(value) {
             if (value == null) return '0 VNĐ';
@@ -91,55 +106,6 @@ export default {
                 style: 'currency',
                 currency: 'VND'
             }).format(value);
-        },
-        async completePayment() {
-            if (!this.data || this.data.length === 0) {
-                alert('Giỏ hàng trống! Vui lòng thêm sản phẩm để thanh toán.');
-                return;
-            }
-
-            const shippingCost = 15000; // Lấy từ phần hiển thị của bạn
-            const totalAmount = this.totalcart.total_price_cart + shippingCost;
-
-            // Bạn có thể thêm một modal để nhập thông tin thanh toán (COD, Credit Card,...) 
-            // Ở đây tôi dùng prompt đơn giản và mặc định là COD
-            const paymentMethod = prompt("Vui lòng nhập phương thức thanh toán (ví dụ: COD, VISA):", "COD");
-
-            if (!paymentMethod) {
-                alert('Vui lòng chọn phương thức thanh toán.');
-                return;
-            }
-
-            try {
-                const url = "/complete-order"; // API mới sẽ được tạo trong Node.js
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    // Gửi dữ liệu giỏ hàng, tổng tiền, phương thức thanh toán lên server
-                    body: JSON.stringify({
-                        cartItems: this.data,
-                        totalAmount: totalAmount,
-                        payment: paymentMethod,
-                        // Trong thực tế cần có: user_id, shipping_address
-                    }),
-                });
-
-                if (res.ok) {
-                    alert("Đơn hàng đã được đặt thành công! Giỏ hàng sẽ được làm trống.");
-                    // Cập nhật lại giỏ hàng và tổng tiền sau khi đặt hàng thành công
-                    await this.fetchdata(this.currenpage, this.limit);
-                    await this.fetchdatatoal(this.limit);
-                    await this.fetchdatacart();
-                } else {
-                    const err = await res.json();
-                    alert(`Lỗi khi đặt hàng: ${err.message || 'Lỗi không xác định.'}`);
-                }
-            } catch (error) {
-                console.error("Lỗi network/server khi đặt hàng: ", error);
-                alert("Đã xảy ra lỗi kết nối. Vui lòng thử lại.");
-            }
         },
         // page
         gotoPage(page) {
@@ -161,7 +127,10 @@ export default {
     <body>
         <div class="container">
             <h2>Cart</h2>
-            <div class="row" style="position: relative;">
+            <div v-if="isLoading">
+                <h1>Loading...</h1>
+            </div>
+            <div class="row" style="position: relative;" v-else-if="data && data.length > 0">
                 <div class="col-md-8" v-for="cart in data" :key="cart.id">
                     <div class="row">
                         <img :src="`../../public/images/${cart.img}`" alt="product-image">
@@ -189,6 +158,12 @@ export default {
                     <button class="btn btn-primary" @click="completePayment()">Complete Payment</button>
                 </div>
             </div>
+
+            <div v-else>
+                <h1>Your cart is empty.</h1>
+                <router-link to="/" class="nav-link">Start shopping now!</router-link>
+            </div>
+
 
             <div class="row gx-5 mt-5">
                 <h2>Related products</h2>
