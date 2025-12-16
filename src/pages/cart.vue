@@ -182,7 +182,7 @@ export default {
                         <input type="text" class="form-control" id="customer_name" v-model="customer_name" required placeholder="Enter name">
                     </div>
                     <div class="mb-3">
-                        <input type="text" class="form-control" id="address" v-model="address" required placeholder="Enter name">
+                        <input type="text" class="form-control" id="address" v-model="address" required placeholder="Enter Address">
                     </div>
                     <div class="mb-3">
                         <input type="tel" class="form-control" id="phone" v-model="phone" required placeholder="Enter phone number">

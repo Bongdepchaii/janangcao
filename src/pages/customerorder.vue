@@ -6,9 +6,13 @@ const expandedOrderId = ref(null);
 const shippingFee = 15500;
 const allStatuses = ['Pending', 'Processing', 'Ship', 'Delivered', 'Canceled'];
 
+// Filter date
+const fromDate = ref('');
+const toDate = ref('');
+
 // --- Biến cho Phân trang và Lọc ---
 const currentPage = ref(1);
-const ordersPerPage = 5; 
+const ordersPerPage = 5;
 const searchQuery = ref('');
 const filterStatus = ref(''); // Biến để lưu trạng thái lọc
 
@@ -19,6 +23,15 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(safeAmount);
 }
 
+// Reset filter
+const resetFilter = () => {
+    filterStatus.value = '';
+    searchQuery.value = '';
+    fromDate.value = '';
+    toDate.value = '';
+    goToPage(1);
+};
+
 // 1. fetch all orders
 const fetchAllOrders = async () => {
     try {
@@ -27,12 +40,12 @@ const fetchAllOrders = async () => {
             throw new Error(`HTTP error! status: ${res.status}`);
         }
         allOrders.value = await res.json();
-        
+
         // Đặt lại trang về 1 sau khi tải dữ liệu mới
         currentPage.value = 1;
     } catch (error) {
         console.error("Error fetching all orders:", error);
-        alert("Lỗi khi tải dữ liệu đơn hàng.");
+        alert("Error load fetching orders.");
         allOrders.value = [];
     }
 }
@@ -41,21 +54,21 @@ const fetchAllOrders = async () => {
 const updateStatus = async (orderId, newStatus) => {
     // Trạng thái 'Canceled' không thể chuyển sang trạng thái khác
     const currentOrder = allOrders.value.find(o => o.id === orderId);
-    
+
     if (currentOrder && currentOrder.status === 'Canceled') {
-        alert("Đơn hàng đã hủy không thể thay đổi trạng thái.");
-        return;
-    }
-    
-    // Nếu là 'Canceled', yêu cầu xác nhận đặc biệt
-    if (newStatus === 'Canceled' && !confirm(`Bạn có chắc muốn HỦY đơn hàng #${orderId} không?`)) {
+        alert("order Canceled not update status.");
         return;
     }
 
-    if (newStatus !== 'Canceled' && !confirm(`Bạn có chắc muốn chuyển trạng thái đơn hàng #${orderId} sang "${newStatus}" không?`)) {
-        return; 
+    // Nếu là 'Canceled', yêu cầu xác nhận đặc biệt
+    if (newStatus === 'Canceled' && !confirm(`Are u sure Canceled status #${orderId}?`)) {
+        return;
     }
-    
+
+    if (newStatus !== 'Canceled' && !confirm(`Are u sure update status #${orderId} to "${newStatus}"?`)) {
+        return;
+    }
+
     try {
         const res = await fetch(`/admin/order/update/${orderId}`, {
             method: "PUT",
@@ -68,13 +81,13 @@ const updateStatus = async (orderId, newStatus) => {
 
         if (res.ok) {
             alert(data.message);
-            await fetchAllOrders(); 
+            await fetchAllOrders();
         } else {
-            alert(`Cập nhật thất bại: ${data.message || 'Lỗi không xác định'}`);
+            alert(`Update failed: ${data.message || 'Error occurred'}`);
         }
     } catch (error) {
         console.error("Error updating order status:", error);
-        alert("Có lỗi xảy ra khi cập nhật trạng thái.");
+        alert("Error updating order status.");
     }
 }
 
@@ -104,18 +117,30 @@ const filteredOrders = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
     const status = filterStatus.value;
 
+    const from = fromDate.value ? new Date(fromDate.value) : null;
+    const to = toDate.value ? new Date(toDate.value) : null;
+
     return allOrders.value.filter(order => {
-        const matchesSearch = !query || 
-            String(order.id).includes(query) || 
-            (order.customer_name && order.customer_name.toLowerCase().includes(query)) || 
-            (order.address && order.address.toLowerCase().includes(query)) || 
+        // --- search ---
+        const matchesSearch = !query ||
+            String(order.id).includes(query) ||
+            (order.customer_name && order.customer_name.toLowerCase().includes(query)) ||
+            (order.address && order.address.toLowerCase().includes(query)) ||
             (order.phone && order.phone.includes(query));
 
+        // --- status ---
         const matchesStatus = !status || order.status === status;
 
-        return matchesSearch && matchesStatus;
+        // --- date ---
+        const orderDate = new Date(order.date);
+
+        const matchesFromDate = !from || orderDate >= from;
+        const matchesToDate = !to || orderDate <= to;
+
+        return matchesSearch && matchesStatus && matchesFromDate && matchesToDate;
     });
 });
+
 
 
 // --- Logic Phân trang (Computed property) ---
@@ -152,28 +177,35 @@ onMounted(() => {
 </script>
 
 <template>
+
     <body>
         <div class="container my-5 customer-order-management">
             <h1 class="text-center mb-5">Customer order</h1>
-            
-            <div class="row mb-4">
-                <div class="col-md-4">
+
+            <div class="row mb-5">
+                <div class="col-md-6">Status
                     <select v-model="filterStatus" @change="goToPage(1)" class="form-control">
-                        <option value="">-- Lọc theo Trạng thái --</option>
+                        <option value="">Filter Status</option>
                         <option v-for="status in allStatuses" :key="status" :value="status">
                             {{ status }}
                         </option>
                     </select>
                 </div>
-                <div class="col-md-8">
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        placeholder="Tìm kiếm theo ID, Tên, Địa chỉ hoặc SĐT..." 
-                        v-model="searchQuery"
-                        @input="goToPage(1)"
-                    >
+                <div class="col-md-3">From
+                    <input type="date" class="form-control" v-model="fromDate" @change="goToPage(1)">
                 </div>
+
+                <div class="col-md-3 mb-3">To
+                    <input type="date" class="form-control" v-model="toDate" @change="goToPage(1)">
+                </div>
+                <div class="col-md-12 mb-3">Search
+                    <input type="text" class="form-control"
+                        placeholder="Search order ID, Name, Address or number phone..." v-model="searchQuery"
+                        @input="goToPage(1)">
+                </div>
+                <button class="btn btn-secondary" @click="resetFilter">
+                    Reset filter
+                </button>
             </div>
 
             <div class="card shadow-sm history-card">
@@ -207,19 +239,14 @@ onMounted(() => {
                                 </div>
 
                                 <div class="admin-actions d-flex align-items-center">
-                                    
+
                                     <template v-if="order.status !== 'Delivered' && order.status !== 'Canceled'">
-                                        <button 
-                                            @click="updateStatus(order.id, getNextStatus(order.status))"
-                                            class="btn btn-sm btn-info"
-                                        >
+                                        <button @click="updateStatus(order.id, getNextStatus(order.status))"
+                                            class="btn btn-sm btn-info">
                                             Confirm to {{ getNextStatus(order.status) }}
                                         </button>
-                                        <button 
-                                            @click="updateStatus(order.id, 'Canceled')"
-                                            class="btn btn-sm btn-danger ml-2"
-                                            style="margin-left: 10px;"
-                                        >
+                                        <button @click="updateStatus(order.id, 'Canceled')"
+                                            class="btn btn-sm btn-danger ml-2" style="margin-left: 10px;">
                                             Cancel
                                         </button>
                                     </template>
@@ -290,8 +317,7 @@ onMounted(() => {
                                 :class="{ active: currentPage === page }">
                                 <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
                             </li>
-                            <li class="page-item"
-                                :class="{ disabled: currentPage === totalPages || totalPages === 0 }">
+                            <li class="page-item" :class="{ disabled: currentPage === totalPages || totalPages === 0 }">
                                 <a class="page-link" href="#" @click.prevent="goToPage(currentPage + 1)">Next</a>
                             </li>
                         </ul>
