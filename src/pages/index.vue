@@ -60,6 +60,11 @@ export default {
                 console.error("bug", error);
             }
         },
+        formatCurrency (amount) {
+            if (amount === undefined || amount === null) return '0 VNĐ';
+            const safeAmount = Math.abs(amount);
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(safeAmount);
+        },
         gotoPage(page) {
             if (page < 1 || page > this.totalPages) return;
             this.currenpage = page;
@@ -114,8 +119,9 @@ export default {
                                 <img :src="`images/${product.img}`" :alt="product.name" />
                             </div>
                             <h3>{{ product.name }}</h3>
-                            <p>Price: {{ product.price }}</p>
-                            <p>Quantity: {{ product.quantity }}</p>
+                            <p>Price: {{ formatCurrency(product.price) }}</p>
+                            <p v-if="product.quantity <= 5">San pham het hang</p>
+                            <p v-else>Quantity: {{ product.quantity }} </p>
                         </router-link>
                         <button class="btn btn-outline-dark mb-2" @click="Addtocart(product.id)">Add to cart</button>
                     </div>

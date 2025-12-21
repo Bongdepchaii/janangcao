@@ -1,19 +1,18 @@
 <script setup>
-import { ref, onMounted } from 'vue'; // 1. Import onMounted
+import { ref, onMounted } from 'vue'; 
 
-// State để quản lý dữ liệu thực tế
-const purchaseHistory = ref([]); // Đã xóa dữ liệu mẫu
+// State luu lich su mua hang
+const purchaseHistory = ref([]); // romove data cua ban dau
 const expandedOrderId = ref(null);
 
-// Hàm định dạng tiền tệ (giữ nguyên)
+// fomart vnd
 const formatCurrency = (amount) => {
     if (amount === undefined || amount === null) return '0 VNĐ';
-    // Lấy giá trị tuyệt đối để tránh lỗi định dạng nếu total là 0 hoặc null
     const safeAmount = Math.abs(amount);
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(safeAmount);
 }
 
-// Hàm tải lịch sử đơn hàng từ API
+// History order api
 const fetchHistory = async () => {
     try {
         const res = await fetch("/order/history");
@@ -29,9 +28,9 @@ const fetchHistory = async () => {
     }
 }
 
-// Hàm hủy đơn hàng
+// Canel order
 const cancelOrder = async (id) => {
-    if (!confirm(`Bạn có chắc muốn hủy đơn hàng ID: ${id}?`)) {
+    if (!confirm(`Are you sure cannel order by ID: ${id}?`)) {
         return;
     }
     try {
@@ -51,13 +50,13 @@ const cancelOrder = async (id) => {
     }
 }
 
-// Tải dữ liệu khi component được mount
+// Load data khi mounted
 onMounted(async () => {
     await fetchHistory();
 });
 
 
-// Dữ liệu người dùng (Giữ nguyên hoặc bạn có thể fetch từ API khác)
+// Dataa user profile 
 const user = ref({
     name: "Thanh Bui",
     email: "Bongdepchaii@example.com",
@@ -66,7 +65,7 @@ const user = ref({
 });
 
 
-// State và hàm quản lý việc mở/đóng chi tiết đơn hàng (giữ nguyên)
+// State mo rong chi tiet don hang
 const toggleDetails = (orderId) => {
     if (expandedOrderId.value === orderId) {
         expandedOrderId.value = null;

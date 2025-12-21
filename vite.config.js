@@ -13,53 +13,53 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-  server: { 
-        historyApiFallback: true,
+  server: {
+    historyApiFallback: true,
     proxy: {
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/home'),
       },
-      "/cart":{
+      "/cart": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/cart/, '/cart'),
+        // rewrite: (path) => path.replace(/^\/cart/, '/cart'),
       },
-      "/cartcount":{
+      "/cartcount": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/cartcount/, '/cartcount'),
+        // rewrite: (path) => path.replace(/^\/cartcount/, '/cartcount'),
       },
       "/productdetail": {
         target: "http://localhost:8080",
         changeOrigin: true,
         // rewrite: (path) => path.replace(/^\/productdetail/, '/productdetail'),
       },
-      '/images': { 
-        target: 'http://localhost:8080', 
+      '/images': {
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       "/productcount": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/productcount/, "/productcount"),
+        // rewrite: (path) => path.replace(/^\/productcount/, "/productcount"),
       },
       // Admin api proxy
       "/addproduct": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
+        // rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
       },
       "/admin/order/update/": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
+        // rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
       },
       "/admin/orders": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
+        // rewrite: (p) => p.replace(/^\/addproduct/, "/addproduct"),
       },
       "/updateproduct": {
         target: "http://localhost:8080",
@@ -74,6 +74,14 @@ export default defineConfig({
         changeOrigin: true,
       },
       "/deletecart": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/minusquantity": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/plusquantity": {
         target: "http://localhost:8080",
         changeOrigin: true,
       },

@@ -70,7 +70,7 @@ app.get("/", (req, res) => {
 // Fix mysql route to match the rewritten path
 app.get("/home/:pagenumber/:limitpage", (req, res) => {
   con.query(
-    "SELECT * FROM product order by id desc limit " +
+    "SELECT * FROM product order by quantity desc limit " +
     req.params.limitpage +
     " offset " +
     req.params.limitpage * (req.params.pagenumber - 1),
@@ -177,6 +177,31 @@ app.delete("/deleteproduct/:id", (req, res) => {
   });
 });
 
+// api plus product cart
+app.patch("/plusquantity/:id", (req, res) => {
+  const productId = req.params.id;
+  const sql = "UPDATE cart SET quantity = quantity + 1 WHERE id = ?";
+  con.query(sql, [productId], (err) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({message: "Error plus product."});
+    }
+    res.json({message: "plus quantity successfly."});
+  })
+});
+
+app.patch("/minusquantity/:id", (req, res) => {
+  const productId = req.params.id;
+  const sql = "UPDATE cart SET quantity = quantity - 1 WHERE id = ? and quantity > 1";
+  con.query(sql, [productId], (err) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({message: "Error minus product."});
+    }
+        res.json({message: "Menus quantity successfly."});
+  })
+});
+
 // api update product
 app.put("/updateproduct/:id", (req, res) => {
   const productId = req.params.id;
@@ -257,9 +282,9 @@ app.get("/admin/orders", (req, res) => {
           date: item.create_at,
           status: item.payment,
           total: item.order_total,
-          customer_name: item.customer_name, // Bổ sung
-          address: item.address, // Bổ sung
-          phone: item.phone, // Bổ sung
+          customer_name: item.customer_name, 
+          address: item.address, 
+          phone: item.phone, 
           subtotal: item.order_total - shippingFee,
           shipping: shippingFee,
           details: []

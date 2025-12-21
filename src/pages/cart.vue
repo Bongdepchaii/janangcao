@@ -3,6 +3,8 @@
 export default {
     data() {
         return {
+            plusquantity: {},
+            minusquantity: {},
             totalcart: {},
             data: [],
             currenpage: 1,
@@ -33,7 +35,7 @@ export default {
                 console.error("error fetching data: ", error);
                 this.data = [];
             } finally {
-                // 2. Đặt isLoading = false sau khi fetch hoàn tất (thành công hoặc thất bại)
+                // sau khi hoan thanh fetch data
                 this.isLoading = false;
             }
         },
@@ -76,6 +78,46 @@ export default {
                 alert('Co Error xay ra khi xoa product.');
             }
         },
+        // plus
+        async plus(id) {
+            const url = `/plusquantity/${id}`;
+            try {
+                const res = await fetch(url, {
+                    method: "PATCH",
+                });
+                if (!res.ok) {
+                    throw new Error("Failed to fetch pllus quantity order error");
+                };
+                console.log("Fetch plus: url ", url);
+                this.plusquantity = await res.json();
+                console.log("Data not plus error ", this.plusquantity);
+                await this.fetchdata(this.currenpage, this.limit);
+                await this.fetchdatacart();
+                // await this.fetchdatatotal(this.limit);
+            } catch (error) {
+                console.error("error fetching plusquantity: ", error);
+            }
+        },
+        // minus
+        async minus(id) {
+            const url = `/minusquantity/${id}`;
+            try {
+                const res = await fetch(url, {
+                    method: "PATCH",
+                });
+                if (!res.ok) {
+                    throw new Error("Failed to fetch menus quantity order error");
+                };
+                console.log("Fetch menus: url ", url);
+                this.menusquantity = await res.json();
+                console.log("data not menus error ", this.menusquantity);
+                await this.fetchdata(this.currenpage, this.limit);
+                await this.fetchdatacart();
+                // await this.fetchdatatotal(this.limit);
+            } catch (error) {
+                console.error("error fetching Menus Quantity product cart: ", error);
+            }
+        },
         // order
         async fetchdatacart() {
             const url = "/order";
@@ -94,9 +136,9 @@ export default {
         },
         // complete payment
         async completePayment() {
-            // Thêm kiểm tra thông tin nhận hàng
+            // check thong tin nhan hang
             if (!this.customer_name || !this.address || !this.phone) {
-                alert("Vui lòng điền đầy đủ Tên, Địa chỉ và Số điện thoại.");
+                alert("Please Enter name, address, numberphone.");
                 return;
             }
 
@@ -127,7 +169,7 @@ export default {
                 await this.fetchdatacart();
             } catch (error) {
                 console.error("Error during payment:", error);
-                alert("Đã xảy ra lỗi trong quá trình thanh toán.");
+                alert("Error payment.");
             }
         },
 
@@ -172,20 +214,25 @@ export default {
                                 <i class="bi bi-trash3 btn btn-outline-danger" @click="deleteCart(cart.id)"></i>
                             </div>
                             <p>Price: {{ cart.price }} VND</p>
-                            <p>Quantity: {{ cart.quantitycart }}</p>
+                            <p>Quantity: <Button @click="minus(cart.id)" class="btn btn-outline-primary">-</Button> {{
+                                cart.quantitycart }}<button class="btn btn-outline-primary"
+                                    @click="plus(cart.id)">+</button></p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 card p-3 card-body card-1" style="position: absolute; right: 15px;">
                     <h3>Order Detail</h3>
                     <div class="mb-3">
-                        <input type="text" class="form-control" id="customer_name" v-model="customer_name" required placeholder="Enter name">
+                        <input type="text" class="form-control" id="customer_name" v-model="customer_name" required
+                            placeholder="Enter name">
                     </div>
                     <div class="mb-3">
-                        <input type="text" class="form-control" id="address" v-model="address" required placeholder="Enter Address">
+                        <input type="text" class="form-control" id="address" v-model="address" required
+                            placeholder="Enter Address">
                     </div>
                     <div class="mb-3">
-                        <input type="tel" class="form-control" id="phone" v-model="phone" required placeholder="Enter phone number">
+                        <input type="tel" class="form-control" id="phone" v-model="phone" required
+                            placeholder="Enter phone number">
                     </div>
                     <hr>
                     <p>Product: {{ totalcart.total_quantity_cart }}</p>
@@ -321,7 +368,12 @@ div.total {
     display: flex;
     justify-content: space-between;
 }
-hr{
+
+hr {
+    margin: 5px;
+}
+
+button {
     margin: 5px;
 }
 </style>

@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router'; // Import để lấy thông tin route
+import { useRoute, useRouter } from 'vue-router'; 
 
-const route = useRoute(); // Lấy đối tượng route
+const route = useRoute(); 
 const router = useRouter();
-const data = ref(null); // Khai báo biến data sử dụng ref, giá trị ban đầu là null
+const data = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
@@ -52,11 +52,11 @@ onMounted(() => {
 <template>
     <div class="container">
         <p v-if="loading">Loading...</p>
-        <div v-else-if="error">Lỗi khi tải dữ liệu: {{ error }}</div>
-        <div v-else-if="!data">Không tìm thấy sản phẩm này (ID: {{ route.params.id }})</div>
+        <div v-else-if="error">Error load data: {{ error }}</div>
+        <div v-else-if="!data">product empty (ID: {{ route.params.id }})</div>
 
         <div v-else class="product-detail-card">
-            <h1>Chi tiết sản phẩm: {{ data.name }}</h1>
+            <h1>Product details: {{ data.name }}</h1>
 
             <div class="row">
                 <div class="col-md-6">

@@ -10,11 +10,11 @@ const allStatuses = ['Pending', 'Processing', 'Ship', 'Delivered', 'Canceled'];
 const fromDate = ref('');
 const toDate = ref('');
 
-// --- Biến cho Phân trang và Lọc ---
+// status va search
 const currentPage = ref(1);
 const ordersPerPage = 5;
 const searchQuery = ref('');
-const filterStatus = ref(''); // Biến để lưu trạng thái lọc
+const filterStatus = ref(''); 
 
 // format vnd
 const formatCurrency = (amount) => {
@@ -41,7 +41,7 @@ const fetchAllOrders = async () => {
         }
         allOrders.value = await res.json();
 
-        // Đặt lại trang về 1 sau khi tải dữ liệu mới
+        // Reset lai trang hien tai ve 1
         currentPage.value = 1;
     } catch (error) {
         console.error("Error fetching all orders:", error);
@@ -52,7 +52,7 @@ const fetchAllOrders = async () => {
 
 // 2. update status order 
 const updateStatus = async (orderId, newStatus) => {
-    // Trạng thái 'Canceled' không thể chuyển sang trạng thái khác
+    // status canceled khonng duoc update
     const currentOrder = allOrders.value.find(o => o.id === orderId);
 
     if (currentOrder && currentOrder.status === 'Canceled') {
@@ -60,7 +60,6 @@ const updateStatus = async (orderId, newStatus) => {
         return;
     }
 
-    // Nếu là 'Canceled', yêu cầu xác nhận đặc biệt
     if (newStatus === 'Canceled' && !confirm(`Are u sure Canceled status #${orderId}?`)) {
         return;
     }
@@ -91,19 +90,19 @@ const updateStatus = async (orderId, newStatus) => {
     }
 }
 
-// Hàm xác định trạng thái tiếp theo
+// ham xac dinh status tiep theo
 const getNextStatus = (currentStatus) => {
     const statusMap = {
         'Pending': 'Processing',
         'Processing': 'Ship',
         'Ship': 'Delivered',
-        'Delivered': 'Delivered', // Delivered là cuối cùng
-        'Canceled': 'Canceled'    // Canceled không thay đổi
+        'Delivered': 'Delivered', 
+        'Canceled': 'Canceled'  
     };
     return statusMap[currentStatus];
 }
 
-// Toggle chi tiết đơn hàng
+// mo rong hoac dong chi tiet don hang
 const toggleDetails = (orderId) => {
     if (expandedOrderId.value === orderId) {
         expandedOrderId.value = null;
@@ -112,7 +111,7 @@ const toggleDetails = (orderId) => {
     }
 }
 
-// --- Logic Tìm kiếm và Lọc (Computed property) ---
+// tim kiem va loc don hang
 const filteredOrders = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
     const status = filterStatus.value;
@@ -154,15 +153,16 @@ const paginatedOrders = computed(() => {
     return filteredOrders.value.slice(start, end);
 });
 
-// Chuyển trang
+// chuyen trang
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
-        expandedOrderId.value = null; // Đóng chi tiết khi chuyển trang
+        // dong  chi tiet khi chuyen trang
+        expandedOrderId.value = null; 
     }
 }
 
-// Tạo mảng số trang để hiển thị
+// tao mang so trang
 const pageNumbers = computed(() => {
     const pages = [];
     for (let i = 1; i <= totalPages.value; i++) {
@@ -185,7 +185,7 @@ onMounted(() => {
             <div class="row mb-5">
                 <div class="col-md-6">Status
                     <select v-model="filterStatus" @change="goToPage(1)" class="form-control">
-                        <option value="">Filter Status</option>
+                        <option value="">All</option>
                         <option v-for="status in allStatuses" :key="status" :value="status">
                             {{ status }}
                         </option>

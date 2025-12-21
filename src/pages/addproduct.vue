@@ -10,6 +10,7 @@
 
 
 // hide product here
+
 export default {
     data() {
         return {
@@ -94,6 +95,11 @@ export default {
                 alert('Co error xay ra khi xoa product.');
             }
         },
+        formatCurrency (amount) {
+            if (amount === undefined || amount === null) return '0 VNĐ';
+            const safeAmount = Math.abs(amount);
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(safeAmount);
+        },
         gotoPage(page) {
             if (page < 1 || page > this.totalPages) return;
             this.currenpage = page;
@@ -133,7 +139,7 @@ export default {
             // 1. check dinh dang jpg va png
             const allowedTypes = ["image/jpeg", "image/png"];
             if (!allowedTypes.includes(file.type)) {
-                alert("chi nhan anh jpg va png");
+                alert("File must be JPG or PNG");
                 event.target.value = "";
                 this[fileRef] = null;
                 return;
@@ -142,7 +148,7 @@ export default {
             // check dung luong (10mb)
             const maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
-                alert("File qua lon toi da 10mb.");
+                alert("File max size 10MB");
                 event.target.value = "";
                 this[fileRef] = null;
                 return;
@@ -173,7 +179,7 @@ export default {
             };
 
             img.onerror = () => {
-                alert("Khong phai hinh anh, khong hop le");
+                alert("not image file.");
                 event.target.value = "";
                 this[fileRef] = null;
                 this[previewRef] = null;
@@ -321,7 +327,7 @@ export default {
                     <th scope="row">{{ product.id }}</th>
                     <td>{{ product.name }}</td>
                     <td>{{ product.quantity }}</td>
-                    <td>{{ product.price }}</td>
+                    <td>{{ formatCurrency(product.price) }}</td>
                     <td><img :src="`public/images/${product.img}`" :alt="product.name" style="max-width: 70px;"></td>
                     <td>
                         <button class="btn btn-primary" @click="openEditModal(product)"
@@ -340,11 +346,11 @@ export default {
         <div v-if="editingProduct" class="edit-modal-overlay">
             <form @submit.prevent="updateProduct" enctype="multipart/form-data" class="edit-product-form">
                 <h2>Edit product ID: {{ editingProduct }}</h2>
-                <input class="form-control" type="text" v-model="editName" id="editName" placeholder="Nhập tên sản phẩm"
+                <input class="form-control" type="text" v-model="editName" id="editName" placeholder="Enter name product"
                     required>
                 <input class="form-control" type="number" v-model="editQuantity" id="editQuantity"
-                    placeholder="Nhập số lượng" required min="0">
-                <input class="form-control" type="number" v-model="editPrice" id="editPrice" placeholder="Nhập giá bán"
+                    placeholder="Enter quantity" required min="0">
+                <input class="form-control" type="number" v-model="editPrice" id="editPrice" placeholder="Enter price"
                     required min="0">
 
                 <span> Image</span>
